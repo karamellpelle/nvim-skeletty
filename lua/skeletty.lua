@@ -1,13 +1,16 @@
 -- export data
 local M = {}
 
+-- make sure skellety works by default
+vim.g.skeletty_enabled = true
+
 -- default configuration
 local default_config = {
     skeleton_dirs = nil, -- ^ _list_  of directories
     local_skeleton_dir = '.skeletons', -- ^ directory path relative to current
 }
 
--- | M.config :: Config
+-- | M.config :: Config. set to default values
 M.config = vim.tbl_extend('force', {}, default_config)
 
 -- | M.set_config :: function( parameters )
@@ -45,30 +48,30 @@ local function list_skeletons()
 
     local dirs = {} 
 
-    -- use config directories (if present) or runtime paths
-    if config.skeleton_dirs or 1 <= #config.skeleton_dirs then -- FIXME: can we just use #?
-        table.insert( dirs, 1, config.skeleton_dirs )  
+    -- use configuration directories (if present) or runtime paths
+    if M.config.skeleton_dirs and 1 <= #M.config.skeleton_dirs then 
+        table.insert( dirs, 1, M.config.skeleton_dirs )  
     else
         table.insert( dirs, 1, vim.split( vim.o.rtp, '\n' ) ) 
     end
 
-    if vim.fn.isdirectory(vim.fn.expand(dir) .. '/skeletons') == 1 then
+    if vim.fn.isdirectory(vim.fn.expand(dir) .. '/skeletons') == 1 then end
 
     -- add current directory (local)
-    local local_dir = config.local_skeleton_dir
+    local local_dir = M.config.local_skeleton_dir
     if local_dir and vim.fn.isdirectory(local_dir) then
         table.insert(dirs, 1, vim.fn.fnamemodify(local_dir, ':p'))
     end
 
-    local relative_paths = ""
+    local relative_dirs = ""
 
     -- flatten table into comma separated paths
     --if type(dirs) ~= 'string' then
-    --    relative_paths = table.concat(dirs, ',')
+    --    relative_dirs = table.concat(dirs, ',')
     --end
  
     -- for now, ignore user setting
-    relative_paths = vim.o.rtp -- comma separated paths
+    relative_dirs = vim.o.rtp -- comma separated paths like runtimepath
 
     -- expand from glob expand
     local skeletons = {}
@@ -76,15 +79,23 @@ local function list_skeletons()
         'skeletons/' .. ft .. '.snippet',
         'skeletons/' .. ft .. '/*.snippet',
     }) do
-        vim.list_extend(skeletons, vim.fn.globpath( relative_paths, expr, false, true))
+
+        print("expr " .. expr )
+
+        -- find files using globs 
+        vim.list_extend( skeletons, vim.fn.globpath( relative_dirs, expr, false, true))
+        print("skeletos length: " .. #skeletons)
     end
+
+    print( "skeltons: " .. table.concat( skeletons , ", " ) )
     return skeletons
+
 end
 
 
 -- | use snippy to insert skeleton and populate snippet fields
 local function expand_skeleton(tpl_file)
-    if vim.g.skeletty_enabled
+    if vim.g.skeletty_enabled then
         local file = io.open(tpl_file)
         local text = file:read('*a')
         text = text:gsub('\n$', '')
@@ -103,9 +114,10 @@ end
 
 -- | expand current buffer
 local function expand()
-    if vim.g.skeletty_enabled
+    if vim.g.skeletty_enabled then
+      vim.g.skel_enabled = true
       local skeletons = list_skeletons()
-      if not #skeletons == 0
+      if not #skeletons == 0 then
           -- add selection option: no template
           vim.list_extend(skeletons, 'None')
           -- show menu
