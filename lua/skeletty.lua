@@ -25,10 +25,8 @@ local function set_config(params)
         for _, dir in ipairs(dir_list) do
             -- warn if skeleton folder inside skeleton
             if vim.fn.isdirectory(vim.fn.expand(dir) .. '/skeletons') == 1 then
-                vim.notify(
-                    'Snippy: folders in "skeleton_dirs" should no longer contain a "skeletons" subfolder',
-                    vim.log.levels.WARN
-                )
+                vim.notify( 'Skeletty: folders in "skeleton_dirs" should not contain a "skeletons" subfolder', vim.log.levels.WARN )
+                -- TODO: remove 'dir'
             end
         end
         params.skeleton_dirs = dir_list
@@ -91,7 +89,9 @@ local function list_skeletons()
 end
 
 
+
 -- | use snippy to insert skeleton and populate snippet fields
+--   TODO: use a map with properties, not just 'tpl_file'
 local function expand_skeleton(tpl_file)
     print("expand_skeleton")
     local file = io.open(tpl_file)
@@ -109,6 +109,20 @@ local function expand_skeleton(tpl_file)
     return snippy.expand_snippet(snip, '')
 end
 
+
+-- | select skeleton from menu 
+--   TODO: use map with properties, like name, local
+local function select_skeleton( skeletons )
+
+    -- show menu
+    local prompter = "Select skeleton: "
+    local formatter = function(item) return "Skeleton: " .. item end
+    local kinder = 'string'
+    local opts = { prompt = prompter, format_item = formatter, kind = kinder }
+
+    vim.ui.select( skeletons, opts, function( selected ) if selected then expand_skeleton( selected ) end end )
+end
+  
 -- | expand current buffer
 local function expand()
     if vim.g.skeletty_enabled then
@@ -116,25 +130,11 @@ local function expand()
         print( "no skeletons: " .. #skeletons )
 
       if #skeletons ~= 0 then
-          print( type(skeletons) ) 
-          -- add selection option: no template
-          --table.insert( skeletons, 'None') 
-
-          -- show menu
-          --local formatter = function(item) return "Skeleton: " .. item end
-          -- ^TODO: unicode skeleton
-          --local select_args = { prompt = 'Select file skeleton:', format_item = formatter }
-          --local 
-          --local selection = function( sel ) if not sel == 'None' then expand_skeleton( sel ) end
-          vim.ui.select( skeletons, {
-              prompt = 'Select file skeleton:'
-              --, format_item = formatter, 
-          }, function(selected)
-                if selected then
-                  expand_skeleton(selected)
-                end
-             end
-          )
+          --print( type(skeletons) ) 
+          local selection = select_skeleton( skeletons )
+          if selection then
+              expand_skeleton( selected )
+          end
       end
     end
 end

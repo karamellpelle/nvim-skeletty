@@ -2,10 +2,11 @@ if vim.g.loaded_skeletty or vim.fn.has('nvim') ~= 1 then
   return 
 end
 
--- FIXME: this may not work, make sure snippy _plugin_ is loaded before
-if not vim.g.loaded_snippy then
-  vim.notify( 'skeletty depends on snippy which is not loaded', vim.log.levels.WARN )
-  return
+
+-- make sure we have snippy
+if not pcall( require, 'snippy' ) then
+  vim.notify( 'skeletty depends on plugin dcampos/nvim-snippy which could not be found' )
+  return 
 end
 
 local skeletty = require('skeletty')
