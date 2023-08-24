@@ -80,14 +80,11 @@ local function list_skeletons()
         'skeletons/' .. ft .. '/*.snippet',
     }) do
 
-        print("expr " .. expr )
-
         -- find files using globs 
         vim.list_extend( skeletons, vim.fn.globpath( relative_dirs, expr, false, true))
-        print("skeletos length: " .. #skeletons)
     end
 
-    print( "skeltons: " .. table.concat( skeletons , ", " ) )
+    --print( "skeltons: " .. table.concat( skeletons , ", " ) )
     return skeletons
 
 end
@@ -95,31 +92,33 @@ end
 
 -- | use snippy to insert skeleton and populate snippet fields
 local function expand_skeleton(tpl_file)
-    if vim.g.skeletty_enabled then
-        local file = io.open(tpl_file)
-        local text = file:read('*a')
-        text = text:gsub('\n$', '')
-        local body = vim.split(text, '\n')
-        local snip = {
-            kind = 'snipmate',
-            prefix = '',
-            description = '',
-            body = body
-        }
-        local ok, snippy = pcall(require, 'snippy')
-        if not ok then return end
-        return snippy.expand_snippet(snip, '')
-    end
+    print("expand_skeleton")
+    local file = io.open(tpl_file)
+    local text = file:read('*a')
+    text = text:gsub('\n$', '')
+    local body = vim.split(text, '\n')
+    local snip = {
+        kind = 'snipmate',
+        prefix = '',
+        description = '',
+        body = body
+    }
+    local ok, snippy = pcall(require, 'snippy')
+    if not ok then return end
+    return snippy.expand_snippet(snip, '')
 end
 
 -- | expand current buffer
 local function expand()
     if vim.g.skeletty_enabled then
-      vim.g.skel_enabled = true
       local skeletons = list_skeletons()
-      if not #skeletons == 0 then
+        print( "no skeletons: " .. #skeletons )
+
+      if #skeletons ~= 0 then
+          print( type(skeletons) ) 
           -- add selection option: no template
-          vim.list_extend(skeletons, 'None')
+          --table.insert( skeletons, 'None') 
+
           -- show menu
           --local formatter = function(item) return "Skeleton: " .. item end
           -- ^TODO: unicode skeleton
@@ -130,10 +129,10 @@ local function expand()
               prompt = 'Select file skeleton:'
               --, format_item = formatter, 
           }, function(selected)
-             if not selected == 'None' then
-                expand_skeleton(selected)
+                if selected then
+                  expand_skeleton(selected)
+                end
              end
-          end
           )
       end
     end
