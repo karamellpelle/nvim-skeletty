@@ -76,8 +76,9 @@ local function list_skeletons()
     -- expand from glob expand
     local skeletons = {}
     for _, expr in ipairs({
-        'skeletons/' .. ft .. '.snippet',
-        'skeletons/' .. ft .. '/*.snippet',
+        'skeletons/' .. ft .. '.snippet',     -- [filetype]
+        'skeletons/' .. ft .. '-*.snippet',   -- [filetype]-[tag]
+        'skeletons/' .. ft .. '/*.snippet',   -- [filetype]/[tag]
     }) do
 
         -- find files using globs 
