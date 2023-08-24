@@ -22,13 +22,20 @@ local function set_config(params)
     if params.skeleton_dirs then
         local dirs = params.skeleton_dirs
         local dir_list = type(dirs) == 'table' and dirs or vim.split(dirs, ',')
-        for _, dir in ipairs(dir_list) do
-            -- warn if skeleton folder inside skeleton
-            if vim.fn.isdirectory(vim.fn.expand(dir) .. '/skeletons') == 1 then
-                vim.notify( 'Skeletty: folders in "skeleton_dirs" should not contain a "skeletons" subfolder', vim.log.levels.WARN )
-                -- TODO: remove 'dir'
+        for k, dir in ipairs(dir_list) do
+            local dir_expanded = vim.fn.expand( dir )
+
+            if vim.fn.isdirectory( dir_expanded ) == 0 then
+                vim.nofity( 'Skeletty: skeleton_dir = ' .. dir_expanded .. " does not exists", vim.log.levels.WARN )
             end
+            -- warn if skeleton folder inside given folder
+            if vim.fn.isdirectory( dir_expanded .. '/skeletons') == 1 then
+                vim.nofity( 'Skeletty: skeleton_dir = ' .. dir_expanded .. " contains a 'skeletons' subfolder which will be ignored", vim.log.levels.WARN )
+            end
+
+            dir_list[k] = dir_expanded
         end
+
         params.skeleton_dirs = dir_list
     end
 
@@ -36,6 +43,27 @@ local function set_config(params)
     M.config = vim.tbl_extend('force', M.config, params)
 end
 
+-- | append all skeleton files inside given directories
+--    TODO: add metadata like local, override, etc
+local function skeletons_append_dirs(skeletons, ft, dirs, sub)
+
+    ---- flatten table into comma separated list
+    print( "dirs: " .. type(dirs) )
+    print( "length: " ..#dirs )
+    for _, expr in ipairs( dirs ) do
+        print( expr .. ": " .. type( expr ) )
+    end
+
+    local paths = table.concat( dirs, ',' )
+    for _, expr in ipairs({
+        sub .. ft .. '.snippet',     -- [filetype]
+        sub .. ft .. '-*.snippet',   -- [filetype]-[tag]
+        sub .. ft .. '/*.snippet',   -- [filetype]/[tag]
+    }) do
+        -- add all files matching globs above, for each directory in 'paths' (comma separated)
+        vim.list_extend( skeletons, vim.fn.globpath( paths, expr, false, true))
+    end
+end
 
 -- | find skeleton files from filetype of current buffer
 local function list_skeletons()
@@ -44,48 +72,32 @@ local function list_skeletons()
         return {}
     end
 
-    local dirs = {} 
-
-    -- use configuration directories (if present) or runtime paths
-    if M.config.skeleton_dirs and 1 <= #M.config.skeleton_dirs then 
-        table.insert( dirs, 1, M.config.skeleton_dirs )  
-    else
-        table.insert( dirs, 1, vim.split( vim.o.rtp, '\n' ) ) 
-    end
-
-    if vim.fn.isdirectory(vim.fn.expand(dir) .. '/skeletons') == 1 then end
-
-    -- add current directory (local)
-    local local_dir = M.config.local_skeleton_dir
-    if local_dir and vim.fn.isdirectory(local_dir) then
-        table.insert(dirs, 1, vim.fn.fnamemodify(local_dir, ':p'))
-    end
-
-    local relative_dirs = ""
-
-    -- flatten table into comma separated paths
-    --if type(dirs) ~= 'string' then
-    --    relative_dirs = table.concat(dirs, ',')
-    --end
- 
-    -- for now, ignore user setting
-    relative_dirs = vim.o.rtp -- comma separated paths like runtimepath
-
-    -- expand from glob expand
     local skeletons = {}
-    for _, expr in ipairs({
-        'skeletons/' .. ft .. '.snippet',     -- [filetype]
-        'skeletons/' .. ft .. '-*.snippet',   -- [filetype]-[tag]
-        'skeletons/' .. ft .. '/*.snippet',   -- [filetype]/[tag]
-    }) do
+    --concatenate: for k,v in pairs(second_table) do first_table[k] = v end
 
-        -- find files using globs 
-        vim.list_extend( skeletons, vim.fn.globpath( relative_dirs, expr, false, true))
+    -- override runtime path if 'skeleton_dirs' is non-empty
+    local skeleton_dirs = M.config.skeleton_dirs
+    if skeleton_dirs and #skeleton_dirs ~= 0 then 
+
+        skeletons_append_dirs( skeletons, ft, skeleton_dirs, "")
+    else
+        local dirs = vim.split( vim.o.rtp, '\n' )
+        skeletons_append_dirs( skeletons, ft, dirs, "skeletons/")
     end
 
-    --print( "skeltons: " .. table.concat( skeletons , ", " ) )
-    return skeletons
 
+    -- add local directory (relative to current folder) and expand to full path
+    -- TODO: relative to CVS (i.e. git project)
+    local local_skeleton_dir = M.config.local_skeleton_dir
+    if local_skeleton_dir and vim.fn.isdirectory( local_skeleton_dir ) then
+
+        skeletons_append_dirs( skeletons, ft, { vim.fn.fnamemodify( local_skeleton_dir, ':p' ) }, "" )
+    end
+
+
+    print( "skeltons: " .. table.concat( skeletons , ", " ) )
+
+    return skeletons
 end
 
 
