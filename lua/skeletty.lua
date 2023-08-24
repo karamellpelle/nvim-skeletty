@@ -6,9 +6,14 @@ vim.g.skeletty_enabled = true
 
 -- default configuration
 local default_config = {
-    skeleton_dirs = nil, -- ^ _list_  of directories
-    local_skeleton_dir = '.skeletons', -- ^ directory path relative to current
+    dirs = nil,               -- ^ _list_  of directories
+    localdir = '.skeletons',  -- ^ directory path relative to current
+    localdir_vcs = false,     -- ^ localdir is relative to parent VCS project (i.e. git)
+    auto = false              -- ^ pick automatically a skeleton from localdir for every 
+                              --   new file. always ignore other files. if no <ft>.snippet, 
+                              --   choose between tagged <ft>-<tag>.snippet
 }
+
 
 -- | M.config :: Config. set to default values
 M.config = vim.tbl_extend('force', {}, default_config)
@@ -18,9 +23,9 @@ M.config = vim.tbl_extend('force', {}, default_config)
 local function set_config(params)
     vim.validate({ params = { params, 't' }, })
 
-    -- update 'skeleton_dirs' as a list of valid directories
-    if params.skeleton_dirs then
-        local dirs = params.skeleton_dirs
+    -- update 'dirs' as a list of valid directories
+    if params.dirs then
+        local dirs = params.dirs
         local dir_list = type(dirs) == 'table' and dirs or vim.split(dirs, ',')
         for k, dir in ipairs(dir_list) do
             local dir_expanded = vim.fn.expand( dir )
@@ -36,7 +41,7 @@ local function set_config(params)
             dir_list[k] = dir_expanded
         end
 
-        params.skeleton_dirs = dir_list
+        params.dirs = dir_list
     end
 
     -- insert updated and original values directly into config
@@ -75,11 +80,11 @@ local function list_skeletons()
     local skeletons = {}
     --concatenate: for k,v in pairs(second_table) do first_table[k] = v end
 
-    -- override runtime path if 'skeleton_dirs' is non-empty
-    local skeleton_dirs = M.config.skeleton_dirs
-    if skeleton_dirs and #skeleton_dirs ~= 0 then 
+    -- override runtime path if 'dirs' is non-empty
+    local dirs = M.config.dirs
+    if dirs and #dirs ~= 0 then 
 
-        skeletons_append_dirs( skeletons, ft, skeleton_dirs, "")
+        skeletons_append_dirs( skeletons, ft, dirs, "")
     else
         local dirs = vim.split( vim.o.rtp, '\n' )
         skeletons_append_dirs( skeletons, ft, dirs, "skeletons/")
@@ -88,10 +93,10 @@ local function list_skeletons()
 
     -- add local directory (relative to current folder) and expand to full path
     -- TODO: relative to CVS (i.e. git project)
-    local local_skeleton_dir = M.config.local_skeleton_dir
-    if local_skeleton_dir and vim.fn.isdirectory( local_skeleton_dir ) then
+    local localdir = M.config.localdir
+    if localdir and vim.fn.isdirectory( localdir ) then
 
-        skeletons_append_dirs( skeletons, ft, { vim.fn.fnamemodify( local_skeleton_dir, ':p' ) }, "" )
+        skeletons_append_dirs( skeletons, ft, { vim.fn.fnamemodify( localdir, ':p' ) }, "" )
     end
 
 
@@ -160,7 +165,6 @@ M.expand = expand
 -- | M.setup :: function( options )
 M.setup = function(o) set_config( o ) end
 
-M.clear_cache = function() end
 
 -- | return content of this file 
 return M
