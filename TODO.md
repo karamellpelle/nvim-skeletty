@@ -1,4 +1,7 @@
 # TODO
+* work on skeleton metadata
+* pick automatic file if `g:localdir_auto`
+* create override command settings
 * use a list of data, not just filenames 
 * override skeleton if same filename and tag (auto)
 * use Emojis
