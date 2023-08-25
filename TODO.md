@@ -1,10 +1,9 @@
 # TODO
 * work on skeleton metadata
-* pick automatic file if `g:localdir_auto`
+* better presentation in `vim.ui.select` (naming from metadata)
+* pick automatic file if `g:localdir_auto` (continue developting)
 * create override command settings
-* use a list of data, not just filenames 
-* override skeleton if same filename and tag (auto)
-* use Emojis
+* create connection to _Telescope_ if that exists
 
 ## config
 * `g:skeletty_dirs`: override runtimepath
@@ -14,3 +13,7 @@
   if there exists a <ft>.snippet always use that. otherwise, choose between tagged 
   skeletons <tf>-<tag>.snippet or <ft>/tag.snippet. create an <ft>-empty.snippet if
   you will ignore skeleton
+
+## API
+### lua-fs
+vim.fs.normalize

@@ -8,14 +8,17 @@
 --------------------------------------------------------------------------------
 --  
 
+utils = require("skeletty.utils")
+
 -- export data
 local M = {}
 
 -- default configuration
 local default_config = {
     enabled = true,           -- ^ toggle Skeletty                                            :: Bool 
-    dirs = nil,               -- ^ list of directories with .snippet files, otherwise     :: [String] | CSV-String
+    dirs = nil,               -- ^ list of directories with .snippet files, otherwise         :: [String] | CSV-String
                               --   look at runtimepath for 'skeletons/' folders 
+    override = false,         -- ^ override hiercially if same template name and tag          :: Bool
     localdir = '.skeletons',  -- ^ directory path relative to current                         :: String
     localdir_project = false,     -- ^ localdir is relative to parent VCS project (i.e. git)  :: Bool
     auto = false              -- ^ pick automatically a skeleton from localdir for every      :: Bool
@@ -62,72 +65,110 @@ local function set_config(params)
     M.config = vim.tbl_extend('force', M.config, params)
 end
 
+
+--| for filepath element, convert to
+--  { filepath, name, tag }
+local function wrap_filepath(ft, filepath)
+
+    local ret = { filepath = filepath, name = '', tag = '' }
+
+    local regex = ''
+    local matches = {}
+
+    -- no tag: <ft>.snippet
+    regex = "\\m.*\\(" .. ft .. "\\).snippet$"
+    matches = vim.fn.matchlist( regex, filepath )
+    if #matches == 1 then
+
+        ret.name = matches[ 0 + 1 ]
+        return ret
+    end
+
+    -- tagged: <ft>-<tag>.snippet or <ft>/<tag>.snippet
+    regex = "\\m.*" .. ft .. "-\\|/\\(\\w+\\)" .. ".snippet$"
+    matches = vim.fn.matchlist( regex, filepath )
+    if #matches == 2 then
+
+        ret.name = matches[0 + 1]
+        ret.tag  = matches[1 + 1]
+        return ret
+    end
+
+    vim.notify( "could not match filepath " .. filepath, vim.log.levels.ERROR )
+    return ret
+end
+
+
+--------------------------------------------------------------------------------
+--  
+
 -- | append all skeleton files inside given directories
---    TODO: add metadata like local, override, etc
-local function skeletons_append_dirs(skeletons, ft, dirs, sub)
+--   added metadata: filepath, filetype/name, tag
+local function skeletons_append_dirs(skeletons, ft, dirs, sub, meta)
 
-    ---- flatten table into comma separated list
---print(" ")
---print( "skeletons_append_dirs() "  )
---print( "    type(dirs): " .. type(dirs) )
---print( "    length:     " ..#dirs )
-
---for _, expr in ipairs( dirs ) do print( expr .. ": " .. type( expr ) ) end
-
+    -- flatten table into comma separated list and convert to fullpath from globs
     local paths = table.concat( dirs, ',' )
-    for _, expr in ipairs({
+    for k, expr in ipairs({
         sub .. ft .. '.snippet',     -- [filetype]
         sub .. ft .. '-*.snippet',   -- [filetype]-[tag]
         sub .. ft .. '/*.snippet',   -- [filetype]/[tag]
     }) do
         -- add all files matching globs above, for each directory in 'paths' (comma separated)
-        local globbed_files = vim.fn.globpath( paths, expr, false, true)
---print("globbel files")
---for _, expr in ipairs( globbed_files ) do print( expr .. ": " .. type( expr ) ) end
+        local items = vim.fn.globpath( paths, expr, false, true)
 
-        vim.list_extend( skeletons, globbed_files )
-    end
+        -- convert filepath to skeleton item 
+        utils.foreach( items, 
+            function(fpath)
+                --return { name = 'name', filetype = 'ft', tag = 'tag', scope = 'scope' }
+                return vim.tbl_extend( 'force', wrap_filepath( ft, fpath ), meta )
+            end
+        )
 
-    print(" ")
+print(" ")
+print("type items")
+for k, expr in ipairs(items) do
+    print("type item: " .. type(expr))
 end
+
+        -- add items to skeleton item list
+        vim.list_extend( skeletons, items )
+      end
+
+
+print(" ")
+
+end
+
+
 
 -- | returns expanded local folder (relative to project, if 'localdir_project' is true
 local function expand_localdir(localdir)
+
     if not localdir then return nil end
 
     -- shall we use project folder as parent folder for 'localdir'?
     if M.config.localdir_project == true then
-print("expand localdir project")
+
         local project_dir = vim.fn.finddir( '.git/..', vim.fn.fnamemodify( vim.fn.getcwd(), ':p:h' ) .. ';' )
         return project_dir .. '/' .. localdir
-
     else
-print("expand localdir: no project")
+
         return vim.fn.fnamemodify( localdir, ':p' )
     end
 end
 
--- [ crate item with metadata
-local function unwrap_filepath( filepath )
-
-    --vim.fn.fnamemodify(filepath, "") use regex
-    local filepath
-
-    return { filepath, filetype, tag }
-end
-
 -- | find skeleton files from filetype of current buffer
---   TODO: add metadata:
---      - file path
---      - file type (name)
---      - tag
---      - local|global|rtp
---      { path = xx, type = ft, tag = "custom", scope = 'local' } 
-local function list_skeletons()
+--   skelton item: {
+--      filepath :: FilePath
+--      scope    :: String ( local | user | runtimepath )
+--      name     :: String (assert name == ft)
+--      tag      :: Maybe String
+--   }
+local function find_skeletons()
 
     -- filetype of current buffer:
-    local ft = vim.bo.ft
-    if not ft or ft == '' then return {} end
+    local filetype = vim.bo.ft
+    if not filetype or filetype == '' then return {} end
 
     local skeletons = {}
 
@@ -138,10 +179,10 @@ local function list_skeletons()
         local dirs = M.config.dirs
         if dirs and #dirs ~= 0 then 
 
-            skeletons_append_dirs( skeletons, ft, dirs, "")
+            skeletons_append_dirs( skeletons, filetype, dirs, "", { scope = 'user' } )
         else
             local dirs = vim.split( vim.o.rtp, '\n' )
-            skeletons_append_dirs( skeletons, ft, dirs, "skeletons/")
+            skeletons_append_dirs( skeletons, filetype, dirs, "skeletons/", { scope = 'runtimepath' })
         end
     end
 
@@ -150,12 +191,16 @@ local function list_skeletons()
     local localdir = expand_localdir( M.config.localdir )
     if localdir then
       if vim.fn.isdirectory( localdir ) then
-          skeletons_append_dirs( skeletons, ft, { localdir }, "" )
+          skeletons_append_dirs( skeletons, filetype, { localdir }, "", { scope = 'local' } )
       else
           vim.notify( 'Skeletty: localdir ' .. localdir .. 'is not a valid directory', vim.log.levels.WARN )
       end
     end
 
+--for k, expr in ipairs(skeletons) do
+--    print("type skeleton_: " .. type(expr))
+--end
+--
     return skeletons
 end
 
@@ -164,8 +209,7 @@ end
 -- | use snippy to insert skeleton and populate snippet fields
 --   TODO: use a map with properties, not just 'tpl_file'
 local function expand_skeleton(tpl_file)
-print(" ")
-print("expand_skeleton")
+
     local file = io.open(tpl_file)
     local text = file:read('*a')
     text = text:gsub('\n$', '')
@@ -182,40 +226,56 @@ print("expand_skeleton")
         return
     end
 
+    -- populate new buffer
     return snippy.expand_snippet(snip, '')
 end
 
 
--- | select skeleton from menu 
---   TODO:
---   * use map with properties, like name, local
---   * use 'auto'
+-- | select and expand skeleton (or cancel)
 local function select_skeleton( skeletons )
 
-    -- show menu
-    local prompter = "Select skeleton: "
-    local formatter = function(item) return "Skeleton: " .. item end
-    local kinder = 'string'
-    local opts = { prompt = prompter, format_item = formatter, kind = kinder }
+for k, expr in ipairs(skeletons) do
+    print("type skeleton_: " .. type(expr))
+end
 
-    vim.ui.select( skeletons, opts, function( selected ) if selected then expand_skeleton( selected ) end end )
+    -- show menu
+    local prompter = "Select skeleton"
+    local kinder = 'skeleton_item'
+    local formatter = 
+    function(item) 
+--print("type iten: " .. type(item))
+          -- TODO: ignore name, only show tag
+          local line = item.name .. " (" .. item.tag .. ") " 
+
+          -- pad width spaces. TODO
+          local width = 16 -- longest ft found was 15 letters
+
+          if item.scope == 'local' then line = line .. "[L]" end
+          return line
+    end
+    local opts = { prompt = prompter, format_item = formatter, kind = kinder }
+    
+    local on_choice =
+    function( item, ix )
+        if item then expand_skeleton( item.filepath ) end
+    end
+
+    -- populate from skeleton, or cancel
+    vim.ui.select( skeletons, opts, on_choice )
 end
  
 
--- | expand current buffer
+-- | expand current, new buffer
 local function expand()
 
     -- only expand if enabled
     if M.config.enabled then
-      local skeletons = list_skeletons()
 
+      local skeletons = find_skeletons()
       if #skeletons ~= 0 then
 
-          -- select between candidates and expand skeleton
-          local selection = select_skeleton( skeletons )
-          if selection then
-              expand_skeleton( selected )
-          end
+          -- select between candidates and expand skeleton into new buffer
+          select_skeleton( skeletons )
       end
     end
 end
