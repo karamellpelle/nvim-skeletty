@@ -45,11 +45,11 @@ local function set_config(params)
             local dir_expanded = vim.fn.expand( dir )
 
             if vim.fn.isdirectory( dir_expanded ) == 0 then
-                vim.nofity( 'Skeletty: skeleton_dir = ' .. dir_expanded .. " does not exists", vim.log.levels.WARN )
+                vim.notify( 'Skeletty: skeleton_dir = ' .. dir_expanded .. " does not exists", vim.log.levels.WARN )
             end
             -- warn if skeleton folder inside given folder
             if vim.fn.isdirectory( dir_expanded .. '/skeletons') == 1 then
-                vim.nofity( 'Skeletty: skeleton_dir = ' .. dir_expanded .. " contains a 'skeletons' child folder which will be ignored", vim.log.levels.WARN )
+                vim.notify( 'Skeletty: skeleton_dir = ' .. dir_expanded .. " contains a 'skeletons' child folder which will be ignored", vim.log.levels.WARN )
             end
 
             dir_list[k] = dir_expanded
@@ -67,13 +67,12 @@ end
 local function skeletons_append_dirs(skeletons, ft, dirs, sub)
 
     ---- flatten table into comma separated list
-    print( "skeletons_append_dirs() "  )
-    print( "    type(dirs): " .. type(dirs) )
-    print( "    length:     " ..#dirs )
+--print(" ")
+--print( "skeletons_append_dirs() "  )
+--print( "    type(dirs): " .. type(dirs) )
+--print( "    length:     " ..#dirs )
 
-    for _, expr in ipairs( dirs ) do
-        print( expr .. ": " .. type( expr ) )
-    end
+--for _, expr in ipairs( dirs ) do print( expr .. ": " .. type( expr ) ) end
 
     local paths = table.concat( dirs, ',' )
     for _, expr in ipairs({
@@ -82,8 +81,14 @@ local function skeletons_append_dirs(skeletons, ft, dirs, sub)
         sub .. ft .. '/*.snippet',   -- [filetype]/[tag]
     }) do
         -- add all files matching globs above, for each directory in 'paths' (comma separated)
-        vim.list_extend( skeletons, vim.fn.globpath( paths, expr, false, true))
+        local globbed_files = vim.fn.globpath( paths, expr, false, true)
+--print("globbel files")
+--for _, expr in ipairs( globbed_files ) do print( expr .. ": " .. type( expr ) ) end
+
+        vim.list_extend( skeletons, globbed_files )
     end
+
+    print(" ")
 end
 
 -- | returns expanded local folder (relative to project, if 'localdir_project' is true
@@ -92,12 +97,13 @@ local function expand_localdir(localdir)
 
     -- shall we use project folder as parent folder for 'localdir'?
     if M.config.localdir_project == true then
-
+print("expand localdir project")
         local project_dir = vim.fn.finddir( '.git/..', vim.fn.fnamemodify( vim.fn.getcwd(), ':p:h' ) .. ';' )
         return project_dir .. '/' .. localdir
 
     else
-        return localdir
+print("expand localdir: no project")
+        return vim.fn.fnamemodify( localdir, ':p' )
     end
 end
 
@@ -126,7 +132,8 @@ local function list_skeletons()
     local skeletons = {}
 
     -- ignore global files if 'auto' is set
-    if M.config.auto and M.config.auto == false then
+    if not M.config.auto or M.config.auto == false then
+
         -- override runtime path if 'dirs' is non-empty
         local dirs = M.config.dirs
         if dirs and #dirs ~= 0 then 
@@ -141,12 +148,13 @@ local function list_skeletons()
     -- add local directory and expand to full path .
     -- relative to current folder, or project folder if 'localdir_project'
     local localdir = expand_localdir( M.config.localdir )
-    if localdir and vim.fn.isdirectory( localdir ) then
-        skeletons_append_dirs( skeletons, ft, { localdir }, "" )
+    if localdir then
+      if vim.fn.isdirectory( localdir ) then
+          skeletons_append_dirs( skeletons, ft, { localdir }, "" )
+      else
+          vim.notify( 'Skeletty: localdir ' .. localdir .. 'is not a valid directory', vim.log.levels.WARN )
+      end
     end
-
-
-    print( "skeltons: " .. table.concat( skeletons , ", " ) )
 
     return skeletons
 end
@@ -156,7 +164,8 @@ end
 -- | use snippy to insert skeleton and populate snippet fields
 --   TODO: use a map with properties, not just 'tpl_file'
 local function expand_skeleton(tpl_file)
-    print("expand_skeleton")
+print(" ")
+print("expand_skeleton")
     local file = io.open(tpl_file)
     local text = file:read('*a')
     text = text:gsub('\n$', '')
@@ -168,7 +177,11 @@ local function expand_skeleton(tpl_file)
         body = body
     }
     local ok, snippy = pcall(require, 'snippy')
-    if not ok then return end
+    if not ok then 
+        vim.notify( 'Skeletty: could not populate from skeleton, Snippy not found', vim.log.levels.WARN )
+        return
+    end
+
     return snippy.expand_snippet(snip, '')
 end
 
@@ -187,15 +200,18 @@ local function select_skeleton( skeletons )
 
     vim.ui.select( skeletons, opts, function( selected ) if selected then expand_skeleton( selected ) end end )
 end
-  
+ 
+
 -- | expand current buffer
 local function expand()
+
+    -- only expand if enabled
     if M.config.enabled then
       local skeletons = list_skeletons()
-        print( "no skeletons: " .. #skeletons )
 
       if #skeletons ~= 0 then
-          --print( type(skeletons) ) 
+
+          -- select between candidates and expand skeleton
           local selection = select_skeleton( skeletons )
           if selection then
               expand_skeleton( selected )
