@@ -22,6 +22,7 @@ command('SkelettyEnable', function(b) require('skeletty').setup( { enabled = b }
 -- | enable skeletty
 command('SkelettyAuto', function(a) require('skeletty').setup( { auto = b } ) end, {})
 
+
 --------------------------------------------------------------------------------
 --  populate a new file using matching skeleton (if available)
 
