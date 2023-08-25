@@ -1,29 +1,43 @@
+--------------------------------------------------------------------------------
+--  NOTES:
+--
+-- * how to concatenate two tables: for k,v in pairs(second_table) do first_table[k] = v end FIXME??
+-- * how to concatenate two lists:  for k,v in ipairs(second_table) do table.insert(first_table, second_table[k] ) FIXME??
+
+
+--------------------------------------------------------------------------------
+--  
+
 -- export data
 local M = {}
 
--- make sure skellety works by default
-vim.g.skeletty_enabled = true
-
 -- default configuration
 local default_config = {
-    dirs = nil,               -- ^ _list_  of directories
-    localdir = '.skeletons',  -- ^ directory path relative to current
-    localdir_vcs = false,     -- ^ localdir is relative to parent VCS project (i.e. git)
-    auto = false              -- ^ pick automatically a skeleton from localdir for every 
+    enabled = true,           -- ^ toggle Skeletty                                            :: Bool 
+    dirs = nil,               -- ^ list of directories with .snippet files, otherwise     :: [String] | CSV-String
+                              --   look at runtimepath for 'skeletons/' folders 
+    localdir = '.skeletons',  -- ^ directory path relative to current                         :: String
+    localdir_project = false,     -- ^ localdir is relative to parent VCS project (i.e. git)  :: Bool
+    auto = false              -- ^ pick automatically a skeleton from localdir for every      :: Bool
                               --   new file. always ignore other files. if no <ft>.snippet, 
                               --   choose between tagged <ft>-<tag>.snippet
 }
 
-
--- | M.config :: Config. set to default values
+-- | init M.config from default values 
 M.config = vim.tbl_extend('force', {}, default_config)
 
--- | M.set_config :: function( parameters )
---   write parameters directly or modified into config 
-local function set_config(params)
-    vim.validate({ params = { params, 't' }, })
 
-    -- update 'dirs' as a list of valid directories
+--------------------------------------------------------------------------------
+--  
+
+-- | write parameters directly or modified into M.config 
+local function set_config(params)
+
+    -- make sure we have a dictionary
+    vim.validate({ params = { params, 'table' }, })
+
+    -- update 'params.dirs' as a list of valid directories
+    -- 'param.dirs' can be a CSV string
     if params.dirs then
         local dirs = params.dirs
         local dir_list = type(dirs) == 'table' and dirs or vim.split(dirs, ',')
@@ -35,7 +49,7 @@ local function set_config(params)
             end
             -- warn if skeleton folder inside given folder
             if vim.fn.isdirectory( dir_expanded .. '/skeletons') == 1 then
-                vim.nofity( 'Skeletty: skeleton_dir = ' .. dir_expanded .. " contains a 'skeletons' subfolder which will be ignored", vim.log.levels.WARN )
+                vim.nofity( 'Skeletty: skeleton_dir = ' .. dir_expanded .. " contains a 'skeletons' child folder which will be ignored", vim.log.levels.WARN )
             end
 
             dir_list[k] = dir_expanded
@@ -53,8 +67,10 @@ end
 local function skeletons_append_dirs(skeletons, ft, dirs, sub)
 
     ---- flatten table into comma separated list
-    print( "dirs: " .. type(dirs) )
-    print( "length: " ..#dirs )
+    print( "skeletons_append_dirs() "  )
+    print( "    type(dirs): " .. type(dirs) )
+    print( "    length:     " ..#dirs )
+
     for _, expr in ipairs( dirs ) do
         print( expr .. ": " .. type( expr ) )
     end
@@ -70,33 +86,63 @@ local function skeletons_append_dirs(skeletons, ft, dirs, sub)
     end
 end
 
--- | find skeleton files from filetype of current buffer
-local function list_skeletons()
-    local ft = vim.bo.ft
-    if not ft or ft == '' then
-        return {}
+-- | returns expanded local folder (relative to project, if 'localdir_project' is true
+local function expand_localdir(localdir)
+    if not localdir then return nil end
+
+    -- shall we use project folder as parent folder for 'localdir'?
+    if M.config.localdir_project == true then
+
+        local project_dir = vim.fn.finddir( '.git/..', vim.fn.fnamemodify( vim.fn.getcwd(), ':p:h' ) .. ';' )
+        return project_dir .. '/' .. localdir
+
+    else
+        return localdir
     end
+end
+
+-- [ crate item with metadata
+local function unwrap_filepath( filepath )
+
+    --vim.fn.fnamemodify(filepath, "") use regex
+    local filepath
+
+    return { filepath, filetype, tag }
+end
+
+-- | find skeleton files from filetype of current buffer
+--   TODO: add metadata:
+--      - file path
+--      - file type (name)
+--      - tag
+--      - local|global|rtp
+--      { path = xx, type = ft, tag = "custom", scope = 'local' } 
+local function list_skeletons()
+
+    -- filetype of current buffer:
+    local ft = vim.bo.ft
+    if not ft or ft == '' then return {} end
 
     local skeletons = {}
-    --concatenate: for k,v in pairs(second_table) do first_table[k] = v end
 
-    -- override runtime path if 'dirs' is non-empty
-    local dirs = M.config.dirs
-    if dirs and #dirs ~= 0 then 
+    -- ignore global files if 'auto' is set
+    if M.config.auto and M.config.auto == false then
+        -- override runtime path if 'dirs' is non-empty
+        local dirs = M.config.dirs
+        if dirs and #dirs ~= 0 then 
 
-        skeletons_append_dirs( skeletons, ft, dirs, "")
-    else
-        local dirs = vim.split( vim.o.rtp, '\n' )
-        skeletons_append_dirs( skeletons, ft, dirs, "skeletons/")
+            skeletons_append_dirs( skeletons, ft, dirs, "")
+        else
+            local dirs = vim.split( vim.o.rtp, '\n' )
+            skeletons_append_dirs( skeletons, ft, dirs, "skeletons/")
+        end
     end
 
-
-    -- add local directory (relative to current folder) and expand to full path
-    -- TODO: relative to CVS (i.e. git project)
-    local localdir = M.config.localdir
+    -- add local directory and expand to full path .
+    -- relative to current folder, or project folder if 'localdir_project'
+    local localdir = expand_localdir( M.config.localdir )
     if localdir and vim.fn.isdirectory( localdir ) then
-
-        skeletons_append_dirs( skeletons, ft, { vim.fn.fnamemodify( localdir, ':p' ) }, "" )
+        skeletons_append_dirs( skeletons, ft, { localdir }, "" )
     end
 
 
@@ -128,7 +174,9 @@ end
 
 
 -- | select skeleton from menu 
---   TODO: use map with properties, like name, local
+--   TODO:
+--   * use map with properties, like name, local
+--   * use 'auto'
 local function select_skeleton( skeletons )
 
     -- show menu
@@ -142,7 +190,7 @@ end
   
 -- | expand current buffer
 local function expand()
-    if vim.g.skeletty_enabled then
+    if M.config.enabled then
       local skeletons = list_skeletons()
         print( "no skeletons: " .. #skeletons )
 

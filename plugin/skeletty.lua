@@ -17,10 +17,10 @@ local skeletty = require('skeletty')
 local command = vim.api.nvim_create_user_command
 
 -- | disable skeletty
-command('SkelettyOff', function() vim.g.skeletty_enabled = false end, {})
+command('SkelettyEnable', function(b) require('skeletty').setup( { enabled: b } ) end, {})
 
 -- | enable skeletty
-command('SkelettyOn', function() vim.g.skeletty_enabled = true end, {})
+command('SkelettyAuto', function(a) require('skeletty').setup( { auto: b } ) end, {})
 
 --------------------------------------------------------------------------------
 --  populate a new file using matching skeleton (if available)
