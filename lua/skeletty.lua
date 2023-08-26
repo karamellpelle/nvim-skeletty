@@ -10,6 +10,9 @@
 
 utils = require("skeletty.utils")
 
+utils.debug("testing debugger->")
+utils.debug("is it OK?\n")
+utils.debug("testing a table: \n", { 2, 3, 5, { spider = 45, owl = "green" }, 2, { cat = { a = 1, b = 2, c = 3 }, dog = "secret" }, 4, 3 })
 -- export data
 local M = {}
 
@@ -69,32 +72,36 @@ end
 --| for filepath element, convert to
 --  { filepath, name, tag }
 local function wrap_filepath(ft, filepath)
-
+utils.debug("wrap_filepath()\n")
     local ret = { filepath = filepath, name = '', tag = '' }
 
     local regex = ''
     local matches = {}
 
-    -- no tag: <ft>.snippet
-    regex = "\\m.*\\(" .. ft .. "\\).snippet$"
-    matches = vim.fn.matchlist( regex, filepath )
-    if #matches == 1 then
+    -- non tagged?
+    regex = [[\(]] .. ft .. [[\)]] .. [[(\.snippet$)]]
+    --               name                   ext
 
-        ret.name = matches[ 0 + 1 ]
-        return ret
-    end
-
-    -- tagged: <ft>-<tag>.snippet or <ft>/<tag>.snippet
-    regex = "\\m.*" .. ft .. "-\\|/\\(\\w+\\)" .. ".snippet$"
-    matches = vim.fn.matchlist( regex, filepath )
+    matches = vim.fn.matchlist( [[\v]] .. regex, filepath ) utils.debug("no tag: ", matches)
     if #matches == 2 then
 
-        ret.name = matches[0 + 1]
-        ret.tag  = matches[1 + 1]
+        ret.name = ix( 0, matches ) 
         return ret
     end
 
-    vim.notify( "could not match filepath " .. filepath, vim.log.levels.ERROR )
+    -- tagged?
+    regex = [[\(]] .. ft .. [[\)]] .. [[\(\/|-\)]] .. [[\(\w+\)]] .. [[\(\.snippet$\)]]
+    --               name               / or -            tag                ext
+
+    matches = vim.fn.matchlist( "\v" .. regex, filepath ) utils.debug("tagged: ", matches)
+    if #matches == 4 then
+
+        ret.name = ix( 0, matches )
+        ret.tag  = ix( 2, matches ) 
+        return ret
+    end
+
+    vim.notify( "Could not match filepath " .. filepath, vim.log.levels.ERROR )
     return ret
 end
 
@@ -124,18 +131,18 @@ local function skeletons_append_dirs(skeletons, ft, dirs, sub, meta)
             end
         )
 
-print(" ")
-print("type items")
-for k, expr in ipairs(items) do
-    print("type item: " .. type(expr))
-end
+--print(" ")
+--print("type items")
+--for k, expr in ipairs(items) do
+--    print("type item: " .. type(expr))
+--end
 
         -- add items to skeleton item list
         vim.list_extend( skeletons, items )
       end
 
 
-print(" ")
+--print(" ")
 
 end
 
@@ -233,10 +240,6 @@ end
 
 -- | select and expand skeleton (or cancel)
 local function select_skeleton( skeletons )
-
-for k, expr in ipairs(skeletons) do
-    print("type skeleton_: " .. type(expr))
-end
 
     -- show menu
     local prompter = "Select skeleton"
