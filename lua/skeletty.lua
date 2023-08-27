@@ -71,28 +71,29 @@ end
 
 
 --| for filepath element, convert to
---  { filepath, name, tag }
+--  { filepath, home, name, tag }
 local function wrap_filepath(ft, filepath)
 
-    local ret = { filepath = filepath, name = '', tag = '' }
+    local ret = { filepath = filepath, home = '', name = '', tag = '' }
 
     -- non-tagged skeleton file?
-    local regexA = [[(]] .. ft .. [[)]] .. [[\.]] .. [[(snippet)]] .. [[$]]
-    --                     name                          ext
+    local regexA = [[(.*)]] ..  [[(]] .. ft .. [[)]] .. [[\.]] .. [[(snippet)]] .. [[$]]
+    --               home               name                          ext
 
-    local name, ext = utils.regex_pick( filepath, regexA )     
-    if name and ext then
+    local home, name, ext = utils.regex_pick( filepath, regexA )     
+    if home and name and ext then
         ret.name = name
+        ret.home = home
         return ret
     end
 
     -- tagged?
-    regexBC = [[(]] .. ft .. [[)]] .. [[(/|-)]] .. [[(\w+)]] .. [[\.]] .. [[(snippet)]] .. [[$]]
-    --                name              / or -        tag                       ext
+    regexBC = [[(.*)]] .. [[(]] .. ft .. [[)]] .. [[(/|-)]] .. [[(\w+)]] .. [[\.]] .. [[(snippet)]] .. [[$]]
+    --          home              name              / or -        tag                       ext 
     
-    local name, sep, tag, ext = utils.regex_pick( filepath, regexBC )
-    if name and sep and tag and ext then
-
+    local home, name, sep, tag, ext = utils.regex_pick( filepath, regexBC )
+    if home and name and sep and tag and ext then
+        ret.home = home
         ret.name = name
         ret.tag  = tag
         return ret
@@ -243,6 +244,7 @@ local function select_skeleton( skeletons )
 
           if not item.tag or item.tag == "" then
               line = "*"
+              line = line .. "                   @" .. item.home
           else
               line = item.tag
           end
