@@ -73,7 +73,7 @@ end
 --| for filepath element, convert to
 --  { filepath, name, tag }
 local function wrap_filepath(ft, filepath)
-utils.debug("wrap_filepath():\n")
+
     local ret = { filepath = filepath, name = '', tag = '' }
 
     -- non-tagged skeleton file?
@@ -128,18 +128,9 @@ local function skeletons_append_dirs(skeletons, ft, dirs, sub, meta)
             end
         )
 
---print(" ")
---print("type items")
---for k, expr in ipairs(items) do
---    print("type item: " .. type(expr))
---end
-
         -- add items to skeleton item list
-        vim.list_extend( skeletons, items )
+        vim.list_extend( skeletons.items, items )
       end
-
-
---print(" ")
 
 end
 
@@ -170,11 +161,16 @@ end
 --   }
 local function find_skeletons()
 
+    local skeletons = {}
+    -- metadata
+    skeletons.name = ""             -- name of collection
+    skeletons.items = {}            -- items in collection
+    skeletons.kind = "skeleton"     -- kind of items
+
     -- filetype of current buffer:
     local filetype = vim.bo.ft
-    if not filetype or filetype == '' then return {} end
+    if not filetype or filetype == '' then return skeletons end
 
-    local skeletons = {}
 
     -- ignore global files if 'auto' is set
     if not M.config.auto or M.config.auto == false then
@@ -201,10 +197,9 @@ local function find_skeletons()
       end
     end
 
---for k, expr in ipairs(skeletons) do
---    print("type skeleton_: " .. type(expr))
---end
---
+    -- add metadata
+    skeletons.name = filetype
+
     return skeletons
 end
 
@@ -239,25 +234,24 @@ end
 local function select_skeleton( skeletons )
 
     -- show menu
-    local prompter = "Select skeleton"
-    local kinder = 'skeleton_item'
+    local kinder = skeletons.kind
+    local prompter = "Select " .. skeletons.name .. " skeleton"
     local formatter = 
     function(item) 
 
-          -- show name
-          -- TODO: ignore name, only show tag
-          local line = item.name 
-          
-          -- show tag
-          if item.tag and item.tag ~= "" then
-            line = line .. " (" .. item.tag .. ") " 
+          local line = "" 
+
+          if not item.tag or item.tag == "" then
+              line = "*"
+          else
+              line = item.tag
           end
 
           -- pad width spaces. TODO
           local width = 16 -- longest ft found was 15 letters
 
           -- add [L] for local skeletons
-          if item.scope == 'local' then line = line .. "[L]" end
+          if item.scope == 'local' then line = line .. " [L]" end
           return line
     end
     local opts = { prompt = prompter, format_item = formatter, kind = kinder }
@@ -268,7 +262,7 @@ local function select_skeleton( skeletons )
     end
 
     -- populate from skeleton, or cancel
-    vim.ui.select( skeletons, opts, on_choice )
+    vim.ui.select( skeletons.items, opts, on_choice )
 end
  
 
@@ -279,7 +273,7 @@ local function expand()
     if M.config.enabled then
 
       local skeletons = find_skeletons()
-      if #skeletons ~= 0 then
+      if #skeletons.items ~= 0 then
 
           -- select between candidates and expand skeleton into new buffer
           select_skeleton( skeletons )
