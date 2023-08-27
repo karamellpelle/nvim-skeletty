@@ -1,10 +1,9 @@
 M = {}
 
+-- create debug log file
 local log = io.open("debug-log.txt", "w")
-io.output( log ) -- ^ redirect print to 'log'
---log:write("\n\n\n")
-log:write("* * * LOG SESSION * * *\n")
-log:flush()
+io.output( log ) -- ^ redirect write() to 'log'
+log:write("* * * LOG SESSION * * *\n") log:flush()
 
 
 -- | foreach :: [a] -> (a -> b) -> [b]
@@ -65,13 +64,20 @@ local function debugger(str, tp)
 
 end
 
+
 -- | use regex to pick capture groups out of string.
 --   regex is of type "very magic"; see :h magic
 --   implementation based on :h sscanf()
+--
+--   TIPS:  ( ) is a capturing group
+--          %( ) is a non-capturing group 
+--
+--   NOTE: it looks like there is a Lua function string.match() to use instead!
+--         https://www.lua.org/manual/5.1/manual.html#pdf-string.match
 local function regex_pick(str, regex)
     local ret = {}
     
-    -- use "very magic"
+    -- use "very magic" regex, i.e. normal
     regex = [[\v]] .. regex
 
     -- only work on matching substring

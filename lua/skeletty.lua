@@ -76,34 +76,25 @@ local function wrap_filepath(ft, filepath)
 utils.debug("wrap_filepath():\n")
     local ret = { filepath = filepath, name = '', tag = '' }
 
-    local regex = ''
-    local matches = {}
-[[(haskell)\.(snippet$)]])
-    -- non tagged?
-    --regex = [[\(]] .. ft .. [[\)]] .. [[(\.snippet$)]]
-    regex = [[(]] .. ft .. [[)]] .. [[\.]] .. [[(snippet)]] .. [[$]]
-    --              name                          ext
+    -- non-tagged skeleton file?
+    local regexA = [[(]] .. ft .. [[)]] .. [[\.]] .. [[(snippet)]] .. [[$]]
+    --                     name                          ext
 
-    --matches = vim.fn.matchlist( filepath, [[\v]] .. regex ) 
-    matches = vim.fn.matchlist( filepath, [[\v]] .. [[.*\(t$\)]] ) 
-    utils.debug("no tag: ", matches)
-    if #matches == 2 then
-
-        ret.name = ix( 0, matches ) 
+    local name, ext = utils.regex_pick( filepath, regexA )     
+    if name and ext then
+        ret.name = name
         return ret
     end
---[[(haskell)(-|/)(\w+)\.(snippet)$]]
 
     -- tagged?
-    regex = [[(]] .. ft .. [[)]] .. [[(/|-)]] .. [[(\w+)]] .. [[\.]] .. [[(snippet)]] .. [[$]]
-    --             name              / or -        tag                       ext
+    regexBC = [[(]] .. ft .. [[)]] .. [[(/|-)]] .. [[(\w+)]] .. [[\.]] .. [[(snippet)]] .. [[$]]
+    --                name              / or -        tag                       ext
+    
+    local name, sep, tag, ext = utils.regex_pick( filepath, regexBC )
+    if name and sep and tag and ext then
 
-    matches = vim.fn.matchlist( filepath, [[\v]] .. regex ) 
-    utils.debug("tagged: ", matches)
-    if #matches == 4 then
-
-        ret.name = ix( 0, matches )
-        ret.tag  = ix( 2, matches ) 
+        ret.name = name
+        ret.tag  = tag
         return ret
     end
 
@@ -252,13 +243,20 @@ local function select_skeleton( skeletons )
     local kinder = 'skeleton_item'
     local formatter = 
     function(item) 
---print("type iten: " .. type(item))
+
+          -- show name
           -- TODO: ignore name, only show tag
-          local line = item.name .. " (" .. item.tag .. ") " 
+          local line = item.name 
+          
+          -- show tag
+          if item.tag and item.tag ~= "" then
+            line = line .. " (" .. item.tag .. ") " 
+          end
 
           -- pad width spaces. TODO
           local width = 16 -- longest ft found was 15 letters
 
+          -- add [L] for local skeletons
           if item.scope == 'local' then line = line .. "[L]" end
           return line
     end
