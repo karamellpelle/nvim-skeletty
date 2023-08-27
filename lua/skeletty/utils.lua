@@ -51,6 +51,9 @@ local function printtype(indent, tp)
 
 end
 
+local function debugtype(tp)
+    return printtype( 0, tp )
+end
 
 local function debugger(str, tp)
 
@@ -58,11 +61,45 @@ local function debugger(str, tp)
 
     if tp == nil then return end
 
-    printtype(0, tp)
+    debugtype( tp )
+
 end
 
-M.foreach = foreach
-M.ix = ix
-M.debug = debugger
+-- | use regex to pick capture groups out of string.
+--   regex is of type "very magic"; see :h magic
+--   implementation based on :h sscanf()
+local function regex_pick(str, regex)
+    local ret = {}
+    
+    -- use "very magic"
+    regex = [[\v]] .. regex
+
+    -- only work on matching substring
+    str = vim.fn.matchstr( str, regex )
+
+    -- retrieve each capture group \1 .. \9
+    local i = 1
+    while i ~= 10 do
+
+        local sub = [[\]] .. i
+        local res = vim.fn.substitute( str, regex, sub, "" )
+        
+        if res == "" then break end
+        
+        table.insert( ret, res )
+        i = i + 1
+    end
+
+    return unpack(ret)
+end
+
+--------------------------------------------------------------------------------
+--  module skeletty.utils where
+
+M.foreach    = foreach
+M.ix         = ix
+M.debug      = debugger
+M.debugtype  = debugtype
+M.regex_pick = regex_pick
 
 return M

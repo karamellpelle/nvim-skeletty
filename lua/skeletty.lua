@@ -11,8 +11,9 @@
 utils = require("skeletty.utils")
 
 utils.debug("testing debugger->")
-utils.debug("is it OK?\n")
-utils.debug("testing a table: \n", { 2, 3, 5, { spider = 45, owl = "green" }, 2, { cat = { a = 1, b = 2, c = 3 }, dog = "secret" }, 4, 3 })
+utils.debug("OK?\n")
+--utils.debug("testing a table: \n", { 2, 3, 5, { spider = 45, owl = "green" }, 2, { cat = { a = 1, b = 2, c = 3 }, dog = "secret" }, 4, 3 })
+
 -- export data
 local M = {}
 
@@ -72,28 +73,33 @@ end
 --| for filepath element, convert to
 --  { filepath, name, tag }
 local function wrap_filepath(ft, filepath)
-utils.debug("wrap_filepath()\n")
+utils.debug("wrap_filepath():\n")
     local ret = { filepath = filepath, name = '', tag = '' }
 
     local regex = ''
     local matches = {}
-
+[[(haskell)\.(snippet$)]])
     -- non tagged?
-    regex = [[\(]] .. ft .. [[\)]] .. [[(\.snippet$)]]
-    --               name                   ext
+    --regex = [[\(]] .. ft .. [[\)]] .. [[(\.snippet$)]]
+    regex = [[(]] .. ft .. [[)]] .. [[\.]] .. [[(snippet)]] .. [[$]]
+    --              name                          ext
 
-    matches = vim.fn.matchlist( [[\v]] .. regex, filepath ) utils.debug("no tag: ", matches)
+    --matches = vim.fn.matchlist( filepath, [[\v]] .. regex ) 
+    matches = vim.fn.matchlist( filepath, [[\v]] .. [[.*\(t$\)]] ) 
+    utils.debug("no tag: ", matches)
     if #matches == 2 then
 
         ret.name = ix( 0, matches ) 
         return ret
     end
+--[[(haskell)(-|/)(\w+)\.(snippet)$]]
 
     -- tagged?
-    regex = [[\(]] .. ft .. [[\)]] .. [[\(\/|-\)]] .. [[\(\w+\)]] .. [[\(\.snippet$\)]]
-    --               name               / or -            tag                ext
+    regex = [[(]] .. ft .. [[)]] .. [[(/|-)]] .. [[(\w+)]] .. [[\.]] .. [[(snippet)]] .. [[$]]
+    --             name              / or -        tag                       ext
 
-    matches = vim.fn.matchlist( "\v" .. regex, filepath ) utils.debug("tagged: ", matches)
+    matches = vim.fn.matchlist( filepath, [[\v]] .. regex ) 
+    utils.debug("tagged: ", matches)
     if #matches == 4 then
 
         ret.name = ix( 0, matches )
