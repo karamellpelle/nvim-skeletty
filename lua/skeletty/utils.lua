@@ -6,11 +6,23 @@ io.output( log ) -- ^ redirect write() to 'log'
 log:write("* * * LOG SESSION * * *\n") log:flush()
 
 
--- | foreach :: [a] -> (a -> b) -> [b]
-local function foreach(list, map)
-    for k, a in ipairs(list) do
-        list[k] = map(a)
+-- | forM :: [a] -> (a -> b) -> [b]
+local function forM(as, map)
+    for k, a in ipairs(as) do
+        as[k] = map(a)
     end
+end
+
+-- | forM_ :: [a] -> (a -> m b) -> m ()
+local function forM_(as, f)
+    for k, a in ipairs( as ) do
+        f( a )
+    end
+end
+
+-- | we have to get rid of the rediculous enumerate-from-one
+local function fromIx(ix)
+    return ix + 1
 end
 
 -- | retrieve value from list from index relative to beginning
@@ -99,13 +111,37 @@ local function regex_pick(str, regex)
     return unpack(ret)
 end
 
+local function list_append_front(as, bs)
+    local as_len = #as
+    local bs_len = #bs
+    local i = 0
+
+    -- move as down 
+    i = 0
+    while i ~= as_len do
+        local j = as_len - (i + 1) -- reverse 'as'
+        as[ bs_len + fromIx( j ) ] = as[ fromIx( j ) ]
+
+        i = i + 1
+    end
+
+    i = 0
+    while i ~= bs_len do
+
+        as[ fromIx( i ) ] = bs[ fromIx( i ) ]
+
+        i = i + 1
+    end
+
+end
 --------------------------------------------------------------------------------
 --  module skeletty.utils where
 
-M.foreach    = foreach
+M.forM    = forM
 M.ix         = ix
 M.debug      = debugger
 M.debugtype  = debugtype
 M.regex_pick = regex_pick
+M.list_append_front = list_append_front
 
 return M

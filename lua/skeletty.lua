@@ -70,8 +70,15 @@ local function set_config(params)
 end
 
 
---| for filepath element, convert to
---  { filepath, home, name, tag }
+--| for filepath element, convert to SkeletonItem
+--   SkeletonItem
+--      filepath  :: FilePath                               -- ^ file
+--      scope     :: String ( local | user | runtimepath )  -- ^ scope
+--      name      :: String (assert name == ft)             -- ^ name (i.e. filetype)
+--      tag       :: Maybe String                           -- ^ tag name
+--      home      :: FilePath                               -- ^ location of file
+--      overrides :: UInt                                   -- ^ number of overrides from higher priority items
+
 local function wrap_filepath(ft, filepath)
 
     local ret = { filepath = filepath, home = '', name = '', tag = '' }
@@ -119,18 +126,20 @@ local function skeletons_append_dirs(skeletons, ft, dirs, sub, meta)
         sub .. ft .. '/*.snippet',   -- [filetype]/[tag]
     }) do
         -- add all files matching globs above, for each directory in 'paths' (comma separated)
+        -- TODO: find if this is depth first or something to know the priority of items
         local items = vim.fn.globpath( paths, expr, false, true)
 
         -- convert filepath to skeleton item 
-        utils.foreach( items, 
+        utils.forM( items, 
             function(fpath)
                 --return { name = 'name', filetype = 'ft', tag = 'tag', scope = 'scope' }
                 return vim.tbl_extend( 'force', wrap_filepath( ft, fpath ), meta )
             end
         )
 
-        -- add items to skeleton item list
-        vim.list_extend( skeletons.items, items )
+        -- add items to the fromt (higher priority)
+        utils.list_append_front( skeletons.items, items )
+        --vim.list_extend( skeletons.items, items ) -- append to end
       end
 
 end
@@ -154,23 +163,23 @@ local function expand_localdir(localdir)
 end
 
 -- | find skeleton files from filetype of current buffer
---   skelton item: {
---      filepath :: FilePath
---      scope    :: String ( local | user | runtimepath )
---      name     :: String (assert name == ft)
---      tag      :: Maybe String
---   }
+--   Skeletons
+--      items     :: [SkeletonItem]     -- ^ set of SkeletonItem
+--      name      :: String             -- ^ name of this collection
+--      kind      :: String             -- ^ kind (for UI hint)
+
 local function find_skeletons()
 
-    local skeletons = {}
+    local ret = {}
+
     -- metadata
-    skeletons.name = ""             -- name of collection
-    skeletons.items = {}            -- items in collection
-    skeletons.kind = "skeleton"     -- kind of items
+    ret.name = ""
+    ret.items = {}
+    ret.kind = "skeleton"
 
     -- filetype of current buffer:
     local filetype = vim.bo.ft
-    if not filetype or filetype == '' then return skeletons end
+    if not filetype or filetype == '' then return ret end
 
 
     -- ignore global files if 'auto' is set
@@ -180,10 +189,11 @@ local function find_skeletons()
         local dirs = M.config.dirs
         if dirs and #dirs ~= 0 then 
 
-            skeletons_append_dirs( skeletons, filetype, dirs, "", { scope = 'user' } )
+            skeletons_append_dirs( ret, filetype, dirs, "", { scope = 'user' } )
         else
+
             local dirs = vim.split( vim.o.rtp, '\n' )
-            skeletons_append_dirs( skeletons, filetype, dirs, "skeletons/", { scope = 'runtimepath' })
+            skeletons_append_dirs( ret, filetype, dirs, "ret/", { scope = 'runtimepath' })
         end
     end
 
@@ -191,20 +201,76 @@ local function find_skeletons()
     -- relative to current folder, or project folder if 'localdir_project'
     local localdir = expand_localdir( M.config.localdir )
     if localdir then
+
       if vim.fn.isdirectory( localdir ) then
-          skeletons_append_dirs( skeletons, filetype, { localdir }, "", { scope = 'local' } )
+
+          skeletons_append_dirs( ret, filetype, { localdir }, "", { scope = 'local' } )
       else
+
           vim.notify( 'Skeletty: localdir ' .. localdir .. 'is not a valid directory', vim.log.levels.WARN )
       end
     end
 
-    -- add metadata
-    skeletons.name = filetype
+    -- compute (and maybe remove if 'M.config.override) overrides
+    --skeletons_overrides( skeletons )
 
-    return skeletons
+    -- add metadata
+    ret.name = filetype
+
+    return ret
 end
 
 
+-- | count overrides and maybe remove them
+local function skeletons_overrides( skeletons )
+
+    local len = #skeletons.items
+    for i, a in ipairs( skeletons.items ) do
+
+        local item_i = a
+
+        local j = i + 1
+        while j ~= len + 1 do
+
+            local item_j = skeletons.items[ j ]
+
+            -- is this an override ?
+            if item_i.name == item_j.name and item_i.tag == item_j.tag then
+
+                -- increase override
+                skeletons.items[ j ].overrides = skeletons.items[ j ].overrides + 1
+
+                -- remove overridden element if 'config.override' == true
+                if M.config.override == true then
+                      
+                    skeletons.items[ j ] = nil
+                end
+            end
+            
+            j = j + 1
+        end
+
+    end
+
+    -- remove nil's
+    if M.config.override == true then
+
+        local i = 0
+        for j = 1, len do
+
+            if input[ j ] ~= nil then
+
+                i = i + 1
+                input[ i ] = input[ j ]
+            end
+        end
+        for j = i + 1, len do
+
+            input[ j ] = nil
+        end
+    end
+
+end
 
 -- | use snippy to insert skeleton and populate snippet fields
 --   TODO: use a map with properties, not just 'tpl_file'
