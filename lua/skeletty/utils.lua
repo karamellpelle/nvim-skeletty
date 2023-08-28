@@ -45,7 +45,7 @@ local function printtype(indent, tp)
     if tpstr == "nil"      then log:write( tp       .. " :: " .. tpstr ) log:flush()           return end
     if tpstr == "string"   then log:write( tp       .. " :: " .. tpstr ) log:flush()           return end
     if tpstr == "number"   then log:write( tp       .. " :: " .. tpstr ) log:flush()           return end
-    if tpstr == "boolean"  then log:write( tp       .. " :: " .. tpstr ) log:flush()           return end
+    if tpstr == "boolean"  then log:write( tostring(tp) .. " :: " .. tpstr ) log:flush()           return end
     if tpstr == "function" then log:write( "<<function>> :: " .. tpstr ) log:flush()  return end
     if tpstr == "thread"   then log:write( "<<thread>>   :: " .. tpstr )   log:flush() return end
     if tpstr == "userdata" then log:write( "<<userdata>> :: " .. tpstr ) log:flush()   return end

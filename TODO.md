@@ -1,13 +1,8 @@
 # TODO
-* remove auto. 
+* rename expand
+* M.config into local config
 * create connection to _Telescope_ if that exists
 * make sure 'setup()' does not write 'nil' to wrong fields
-
-## config
-* `g:skeletty_auto`: only works with local skeltons, it ignores all other skeletons. 
-  if there exists a <ft>.snippet always use that. otherwise, choose between tagged 
-  skeletons <tf>-<tag>.snippet or <ft>/tag.snippet. create an <ft>-empty.snippet if
-  you will ignore skeleton
 
 ## API
 ### lua-fs
