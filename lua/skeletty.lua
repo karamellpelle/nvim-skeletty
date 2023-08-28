@@ -23,20 +23,21 @@ local M = {}
 --      enabled           :: Bool                               -- ^ toggle Skeletty
 --      dirs              :: Maybe( [FilePath] | CSV-String )   -- ^ list of directories with .snippet files, otherwise
 --                                                              --   look at runtimepath for 'skeletons/' folders 
+--      override          :: Bool                               -- ^ override hiercially if same template name and tag
 --      localdir          :: Maybe FilePath                     -- ^ directory path relative to current
 --      localdir_project  :: Bool                               -- ^ localdir is relative to parent VCS project (i.e. git)
---      override          :: Bool                               -- ^ override hiercially if same template name and tag
---      auto              :: Bool                               -- ^ pick automatically a skeleton from localdir for every 
-                                                                --   new file. always ignore other files. if no <ft>.snippet, 
-                                                                --   choose between tagged <ft>-<tag>.snippet
--- default configuration
+--      localdir_auto     :: Bool                               -- ^ if skeleton(s) found in 'localdir', automatically pick the default 
+--                                                              --   <ft>.snippet, or select between the other local, tagged skeletons. 
+--                                                              --   if there are no local skeletons, find and select skeleton as usual.
+--
+-- | default configuration
 local default_config = {
     enabled = true,           
     dirs = nil,              
+    override = false,      
     localdir = '.skeletons',
     localdir_project = false,
-    override = false,      
-    auto = false            
+    localdir_auto = false            
 }
 
 -- | init M.config from default values 
@@ -148,14 +149,13 @@ local function skeletons_append_dirs(skeletons, ft, dirs, sub, meta)
         -- convert filepath to skeleton item 
         utils.forM( items, 
             function(fpath)
-                --return { name = 'name', filetype = 'ft', tag = 'tag', scope = 'scope' }
                 return vim.tbl_extend( 'force', wrap_filepath( ft, fpath ), meta )
             end
         )
 
         -- add items to the fromt (higher priority)
-        utils.list_append_front( skeletons.items, items )
-        --vim.list_extend( skeletons.items, items ) -- append to end
+        --utils.list_append_front( skeletons.items, items ) -- append to front
+        vim.list_extend( skeletons.items, items ) -- append to end
       end
 
 end
@@ -240,6 +240,19 @@ local function skeletons_overrides( skeletons )
 end
 
 
+--| pick the default skeleton
+local function skeletons_pick_auto(skeletons)
+    for _, item in ipairs( skeletons.items ) do
+
+        if item.tag == "" then return item end
+    end
+
+    return nil
+end
+
+
+
+
 -- | find_skeletons() :: IO Skeletons
 --
 --   find skeleton files from filetype of current buffer
@@ -249,6 +262,7 @@ end
 --      kind      :: String             -- ^ kind (for UI hint)
 --      items     :: [SkeletonItem]     -- ^ set of SkeletonItem
 --      ignores   :: UInt               -- ^ number of overridden skeleton files
+--      auto      :: Maybe SkeletonItem -- ^ _the_ selection
 --
 local function find_skeletons()
 
@@ -259,28 +273,16 @@ local function find_skeletons()
     ret.kind = "skeleton"
     ret.items = {}
     ret.ignores = 0
+    ret.auto = nil
 
     -- filetype of current buffer:
     local filetype = vim.bo.ft
     if not filetype or filetype == '' then return ret end
 
+    ret.name = filetype
 
-    -- ignore global files if 'auto' is set
-    if not M.config.auto or M.config.auto == false then
-
-        -- override runtime path if 'dirs' is non-empty
-        local dirs = M.config.dirs
-        if dirs and #dirs ~= 0 then 
-
-            skeletons_append_dirs( ret, filetype, dirs, "", { scope = 'user' } )
-        else
-
-            local dirs = vim.split( vim.o.rtp, '\n' )
-            skeletons_append_dirs( ret, filetype, dirs, "ret/", { scope = 'runtimepath' })
-        end
-    end
-
-    -- add local directory and expand to full path .
+    -- priority A (local skeletons)
+    -- add local directory and expand to full path,
     -- relative to current folder, or project folder if 'localdir_project'
     local localdir = expand_localdir( M.config.localdir )
     if localdir then
@@ -294,13 +296,35 @@ local function find_skeletons()
       end
     end
 
-    -- compute (and maybe remove if 'M.config.override) overrides
-    skeletons_overrides( ret )
+    -- priority B (user skeletons) or C (runtimepath skeletons)
+    if M.config.localdir_auto == false or #ret.items == 0 then
 
-    -- add metadata
-    ret.name = filetype
+        -- override runtime path if 'dirs' is non-empty
+        local dirs = M.config.dirs
+        if dirs and #dirs ~= 0 then 
+
+            skeletons_append_dirs( ret, filetype, dirs, "", { scope = 'user' } )
+        else
+
+            local dirs = vim.split( vim.o.rtp, '\n' )
+            skeletons_append_dirs( ret, filetype, dirs, "ret/", { scope = 'runtimepath' })
+        end
+
+        -- compute overrides (and remove if 'M.config.override') 
+        skeletons_overrides( ret )
+
+    else
+        
+        -- compute overrides (and remove if 'M.config.override) 
+        skeletons_overrides( ret )
+
+        -- set the default skeleton as selection
+        ret.auto = skeletons_pick_auto( ret )
+       
+    end
 
     return ret
+
 end
 
 
@@ -367,7 +391,7 @@ local function select_skeleton( skeletons )
     local formatter = format_select_item
     local kinder = skeletons.kind
     local prompter = "Select " .. skeletons.name .. " Skeleton"
-                     if skeletons.ignores ~= 0 then prompter = prompter .. " (ignoring " .. skeletons.ignores .. " overridden)" end
+                     if skeletons.ignores ~= 0 then prompter = prompter .. " (hiding " .. skeletons.ignores .. " by override)" end
 
     local opts = { prompt = prompter, format_item = formatter, kind = kinder }
     
@@ -386,12 +410,19 @@ local function expand()
     -- only expand if enabled
     if M.config.enabled then
 
-      local skeletons = find_skeletons()
-      if #skeletons.items ~= 0 then
+        local skeletons = find_skeletons()
 
-          -- select between candidates and expand skeleton into new buffer
-          select_skeleton( skeletons )
-      end
+        -- do we already have a selected skeleton?
+        if skeletons.auto then
+
+            expand_skeleton( skeletons.auto.filepath )
+
+        elseif #skeletons.items ~= 0 then
+
+            -- select between candidates and expand skeleton into new buffer
+            select_skeleton( skeletons )
+        end
+
     end
 end
 

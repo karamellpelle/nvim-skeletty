@@ -1,6 +1,7 @@
 # TODO
-* pick automatic file if `g:localdir_auto` 
+* remove auto. 
 * create connection to _Telescope_ if that exists
+* make sure 'setup()' does not write 'nil' to wrong fields
 
 ## config
 * `g:skeletty_auto`: only works with local skeltons, it ignores all other skeletons. 
