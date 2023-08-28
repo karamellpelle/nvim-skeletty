@@ -17,17 +17,26 @@ utils.debug("OK?\n")
 -- export data
 local M = {}
 
+
+--------------------------------------------------------------------------------
+--  Config
+--      enabled           :: Bool                               -- ^ toggle Skeletty
+--      dirs              :: Maybe( [FilePath] | CSV-String )   -- ^ list of directories with .snippet files, otherwise
+--                                                              --   look at runtimepath for 'skeletons/' folders 
+--      localdir          :: Maybe FilePath                     -- ^ directory path relative to current
+--      localdir_project  :: Bool                               -- ^ localdir is relative to parent VCS project (i.e. git)
+--      override          :: Bool                               -- ^ override hiercially if same template name and tag
+--      auto              :: Bool                               -- ^ pick automatically a skeleton from localdir for every 
+                                                                --   new file. always ignore other files. if no <ft>.snippet, 
+                                                                --   choose between tagged <ft>-<tag>.snippet
 -- default configuration
 local default_config = {
-    enabled = true,           -- ^ toggle Skeletty                                            :: Bool 
-    dirs = nil,               -- ^ list of directories with .snippet files, otherwise         :: [String] | CSV-String
-                              --   look at runtimepath for 'skeletons/' folders 
-    override = false,         -- ^ override hiercially if same template name and tag          :: Bool
-    localdir = '.skeletons',  -- ^ directory path relative to current                         :: String
-    localdir_project = false,     -- ^ localdir is relative to parent VCS project (i.e. git)  :: Bool
-    auto = false              -- ^ pick automatically a skeleton from localdir for every      :: Bool
-                              --   new file. always ignore other files. if no <ft>.snippet, 
-                              --   choose between tagged <ft>-<tag>.snippet
+    enabled = true,           
+    dirs = nil,              
+    localdir = '.skeletons',
+    localdir_project = false,
+    override = false,      
+    auto = false            
 }
 
 -- | init M.config from default values 
@@ -81,7 +90,14 @@ end
 
 local function wrap_filepath(ft, filepath)
 
-    local ret = { filepath = filepath, home = '', name = '', tag = '' }
+    local ret = { 
+        filepath = filepath
+      , scope = ''
+      , home = ''
+      , name = ''
+      , tag = ''
+      , overrides = 0
+    }
 
     -- non-tagged skeleton file?
     local regexA = [[(.*)]] ..  [[(]] .. ft .. [[)]] .. [[\.]] .. [[(snippet)]] .. [[$]]
@@ -149,7 +165,7 @@ end
 -- | returns expanded local folder (relative to project, if 'localdir_project' is true
 local function expand_localdir(localdir)
 
-    if not localdir then return nil end
+    if not localdir or localdir == "" then return nil end
 
     -- shall we use project folder as parent folder for 'localdir'?
     if M.config.localdir_project == true then
@@ -162,12 +178,73 @@ local function expand_localdir(localdir)
     end
 end
 
--- | find skeleton files from filetype of current buffer
+
+-- | count overrides and maybe remove them
+local function skeletons_overrides( skeletons )
+
+    local len = #skeletons.items
+    for i, a in ipairs( skeletons.items ) do
+
+        local item_i = a
+
+        local j = i + 1
+        while j ~= len + 1 do
+
+            local item_j = skeletons.items[ j ]
+
+            -- equals item with lower priorty?
+            if item_i.name == item_j.name and item_i.tag == item_j.tag then
+
+                -- increase override of item with lower priority
+                skeletons.items[ j ].overrides = skeletons.items[ j ].overrides + 1
+            end
+            
+            j = j + 1
+        end
+
+    end
+
+    -- remove overrides
+    if M.config.override == true then
+
+        local i = 0
+        local len= #skeletons.items
+        while i ~= len do
+
+            if skeletons.items[ (i + 1) ].overrides ~= 0 then
+
+                -- shift elements down
+                local j = i
+                while j + 1 ~= len do
+
+                    skeletons.items[ (j + 1) ] = skeletons.items[ (j + 1 ) + 1 ]
+
+                    j = j + 1
+                end
+
+                -- erase last element (nil-terminated list) 
+                skeletons.items[ (j + 1) ] = nil
+
+                len = len - 1
+            else
+
+                i = i + 1
+            end
+        end
+    end
+
+end
+
+
+-- | find_skeletons() :: IO Skeletons
+--
+--   find skeleton files from filetype of current buffer
+--
 --   Skeletons
 --      items     :: [SkeletonItem]     -- ^ set of SkeletonItem
 --      name      :: String             -- ^ name of this collection
 --      kind      :: String             -- ^ kind (for UI hint)
-
+--
 local function find_skeletons()
 
     local ret = {}
@@ -212,7 +289,7 @@ local function find_skeletons()
     end
 
     -- compute (and maybe remove if 'M.config.override) overrides
-    --skeletons_overrides( skeletons )
+    skeletons_overrides( ret )
 
     -- add metadata
     ret.name = filetype
@@ -221,56 +298,6 @@ local function find_skeletons()
 end
 
 
--- | count overrides and maybe remove them
-local function skeletons_overrides( skeletons )
-
-    local len = #skeletons.items
-    for i, a in ipairs( skeletons.items ) do
-
-        local item_i = a
-
-        local j = i + 1
-        while j ~= len + 1 do
-
-            local item_j = skeletons.items[ j ]
-
-            -- is this an override ?
-            if item_i.name == item_j.name and item_i.tag == item_j.tag then
-
-                -- increase override
-                skeletons.items[ j ].overrides = skeletons.items[ j ].overrides + 1
-
-                -- remove overridden element if 'config.override' == true
-                if M.config.override == true then
-                      
-                    skeletons.items[ j ] = nil
-                end
-            end
-            
-            j = j + 1
-        end
-
-    end
-
-    -- remove nil's
-    if M.config.override == true then
-
-        local i = 0
-        for j = 1, len do
-
-            if input[ j ] ~= nil then
-
-                i = i + 1
-                input[ i ] = input[ j ]
-            end
-        end
-        for j = i + 1, len do
-
-            input[ j ] = nil
-        end
-    end
-
-end
 
 -- | use snippy to insert skeleton and populate snippet fields
 --   TODO: use a map with properties, not just 'tpl_file'
@@ -292,8 +319,37 @@ local function expand_skeleton(tpl_file)
         return
     end
 
-    -- populate new buffer
+    -- call Snippy! 
     return snippy.expand_snippet(snip, '')
+end
+
+
+local function format_select_item(item)
+
+    local line = "" 
+
+    if not item.tag or item.tag == "" then
+        
+        -- name
+        line = "(default)"
+    else
+        -- name
+        line = item.tag
+    end
+
+    -- show overrides
+    line = line .. " " .. string.rep( "*", item.overrides )
+
+    -- add column with [L] for local skeletons
+    line = line .. string.rep(" ", 16 - #line)
+    if item.scope == 'local' then line = line .. " [L]" end
+
+    -- show 'home'
+    line = line .. string.rep(" ", 24 - #line)
+    line = line .. "@ " .. item.home
+
+    return line
+
 end
 
 
@@ -301,36 +357,18 @@ end
 local function select_skeleton( skeletons )
 
     -- show menu
+    local formatter = format_select_item
     local kinder = skeletons.kind
     local prompter = "Select " .. skeletons.name .. " skeleton"
-    local formatter = 
-    function(item) 
 
-          local line = "" 
-
-          if not item.tag or item.tag == "" then
-              line = "*"
-              line = line .. "                   @" .. item.home
-          else
-              line = item.tag
-          end
-
-          -- pad width spaces. TODO
-          local width = 16 -- longest ft found was 15 letters
-
-          -- add [L] for local skeletons
-          if item.scope == 'local' then line = line .. " [L]" end
-          return line
-    end
     local opts = { prompt = prompter, format_item = formatter, kind = kinder }
     
-    local on_choice =
-    function( item, ix )
-        if item then expand_skeleton( item.filepath ) end
-    end
+    -- select skeleton or cancel
+    vim.ui.select( skeletons.items, opts, function( item, ix ) 
 
-    -- populate from skeleton, or cancel
-    vim.ui.select( skeletons.items, opts, on_choice )
+            if item then expand_skeleton( item.filepath ) end 
+        end)
+
 end
  
 
