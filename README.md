@@ -1,2 +1,4 @@
 # nvim-skeletty
-Neovim snippet file templates using nvim-snippy
+
+Create new files from Skeletons using [nvim-snippy](https://github.com/dcampos/nvim-snippy) 💀
+

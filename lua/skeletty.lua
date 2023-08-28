@@ -1,17 +1,8 @@
 --------------------------------------------------------------------------------
---  NOTES:
+--  this code is based on code from dcampos/nvim-snippy (templates)
 --
--- * how to concatenate two tables: for k,v in pairs(second_table) do first_table[k] = v end
--- * how to concatenate two lists:  for k,v in ipairs(second_table) do table.insert(first_table, second_table[k] ) 
-
-
---------------------------------------------------------------------------------
---  
 
 utils = require("skeletty.utils")
-
-utils.debug("testing debugger->")
-utils.debug("OK?\n")
 
 -- export data
 local M = {}
@@ -27,24 +18,26 @@ local M = {}
 --      localdir_project   :: Bool                               -- ^ localdir is relative to parent VCS project (i.e. git)
 --      localdir_exclusive :: Bool                               -- ^ only use localdir if there are skeletons there 
 --
+
 -- | default configuration
 local default_config = {
     enabled            = true,
     dirs               = nil,
     override           = false,
-    localdir           = '.skeletons',
+    localdir           = ".skeletons",
     localdir_project   = false,
     localdir_exclusive = false
 }
 
 -- | init M.config from default values 
-M.config = vim.tbl_extend('force', {}, default_config)
+M.config = vim.tbl_extend( "force", {}, default_config )
 
 
 --------------------------------------------------------------------------------
---  
-
 -- | write parameters directly or modified into M.config 
+--   TODO: make sure we don't write 'nil' to wrong fields
+--   TODO: make 'M.config' local
+--
 local function set_config(params)
 
     -- make sure we have a dictionary
@@ -73,11 +66,15 @@ local function set_config(params)
     end
 
     -- insert updated and original values directly into config
-    M.config = vim.tbl_extend('force', M.config, params)
+    M.config = vim.tbl_extend( "force", M.config, params )
 end
 
 
---| for filepath element, convert to SkeletonItem
+
+
+--------------------------------------------------------------------------------
+--| FilePath -> IO SkeletonItem
+--
 --   SkeletonItem
 --      filepath  :: FilePath                               -- ^ file
 --      scope     :: String ( local | user | runtimepath )  -- ^ scope
@@ -85,7 +82,7 @@ end
 --      tag       :: Maybe String                           -- ^ tag name
 --      home      :: FilePath                               -- ^ location of file
 --      overrides :: UInt                                   -- ^ number of overrides from higher priority items
-
+--
 local function wrap_filepath(ft, filepath)
 
     local ret = { 
@@ -125,11 +122,12 @@ local function wrap_filepath(ft, filepath)
 end
 
 
---------------------------------------------------------------------------------
---  
 
+
+--------------------------------------------------------------------------------
 -- | append all skeleton files inside given directories
---   added metadata: filepath, filetype/name, tag
+--   metadata added: filepath, name, tag
+--
 local function skeletons_append_dirs(skeletons, ft, dirs, sub, meta)
 
     -- flatten table into comma separated list and convert to fullpath from globs
@@ -158,7 +156,9 @@ end
 
 
 
--- | returns expanded local folder (relative to project, if 'localdir_project' is true
+--------------------------------------------------------------------------------
+-- | returns expanded local folder (relative to project, if 'localdir_project' is true)
+--
 local function expand_localdir(localdir)
 
     if not localdir or localdir == "" then return nil end
@@ -175,9 +175,12 @@ local function expand_localdir(localdir)
 end
 
 
--- | count overrides and maybe remove them
+
+
+--------------------------------------------------------------------------------
+-- | count overrides (and remove them if M.config.override)
+--
 local function skeletons_overrides( skeletons )
-    
 
     local len = #skeletons.items
     for i, a in ipairs( skeletons.items ) do
@@ -236,16 +239,18 @@ local function skeletons_overrides( skeletons )
 end
 
 
+
+--------------------------------------------------------------------------------
 -- | find_skeletons() :: IO Skeletons
 --
 --   find skeleton files from filetype of current buffer
 --
 --   Skeletons
 --      name      :: String             -- ^ name of this collection
---      kind      :: String             -- ^ kind (for UI hint)
---      items     :: [SkeletonItem]     -- ^ set of SkeletonItem
+--      kind      :: String             -- ^ kind (hint for UI)
+--      items     :: [SkeletonItem]     -- ^ set of SkeletonItem's
 --      ignores   :: UInt               -- ^ number of overridden skeleton files
---      exclusive :: Bool               -- ^ did we 
+--      exclusive :: Bool               -- ^ did we exclude non-local skeletons?
 --
 local function find_skeletons()
 
@@ -264,7 +269,7 @@ local function find_skeletons()
 
     ret.name = filetype
 
-    -- priority A (local skeletons)
+    -- priority A (local skeletons):
     -- add local directory and expand to full path,
     -- relative to current folder, or project folder if 'localdir_project'
     local localdir = expand_localdir( M.config.localdir )
@@ -305,7 +310,9 @@ end
 
 
 
+--------------------------------------------------------------------------------
 -- | use Snippy to insert skeleton and populate snippet fields
+-- 
 local function expand_skeleton(tpl_file)
 
     local file = io.open(tpl_file)
@@ -318,18 +325,23 @@ local function expand_skeleton(tpl_file)
         description = '',
         body = body
     }
+
     local ok, snippy = pcall(require, 'snippy')
     if not ok then 
-        vim.notify( 'Skeletty: could not populate from skeleton, Snippy not found', vim.log.levels.WARN )
+
+        vim.notify( "Skeletty: could not expand Skeleton, Snippy not found", vim.log.levels.ERROR )
         return
     end
 
     -- call Snippy! 
-    return snippy.expand_snippet(snip, '')
+    return snippy.expand_snippet( snip, "" )
 end
 
 
+
+--------------------------------------------------------------------------------
 -- | format item for vim.ui.select 
+--
 local function format_select_item(item)
 
     local line = "" 
@@ -359,7 +371,10 @@ local function format_select_item(item)
 end
 
 
+
+--------------------------------------------------------------------------------
 -- | select and expand skeleton (or cancel)
+--
 local function select_skeleton( skeletons )
 
     -- show menu
@@ -379,8 +394,9 @@ local function select_skeleton( skeletons )
 
 end
  
-
+--------------------------------------------------------------------------------
 -- | handle new buffer
+--
 local function expand()
 
 
@@ -396,15 +412,15 @@ local function expand()
     end
 end
 
- 
+
+
+
+
+
 --------------------------------------------------------------------------------
---  export
+--  module skeletty where
 
 M.expand = expand
-
--- | M.setup :: function( options )
 M.setup = function(o) set_config( o ) end
 
-
--- | return content of this file 
 return M

@@ -1,9 +1,9 @@
 M = {}
 
 -- create debug log file
-local log = io.open("debug-log.txt", "w")
-io.output( log ) -- ^ redirect write() to 'log'
-log:write("* * * LOG SESSION * * *\n") log:flush()
+--local log = io.open("debug-log.txt", "w")
+--io.output( log ) -- ^ redirect write() to 'log'
+--log:write("* * * LOG SESSION * * *\n") log:flush()
 
 
 -- | forM :: [a] -> (a -> b) -> [b]
@@ -116,15 +116,16 @@ local function list_append_front(as, bs)
     local bs_len = #bs
     local i = 0
 
-    -- move as down 
+    -- move 'as' down, make space for 'bs'
     i = 0
     while i ~= as_len do
-        local j = as_len - (i + 1) -- reverse 'as'
+        local j = as_len - (i + 1)
         as[ bs_len + fromIx( j ) ] = as[ fromIx( j ) ]
 
         i = i + 1
     end
 
+    -- insert 'bs' at front
     i = 0
     while i ~= bs_len do
 
@@ -134,6 +135,8 @@ local function list_append_front(as, bs)
     end
 
 end
+
+
 --------------------------------------------------------------------------------
 --  module skeletty.utils where
 

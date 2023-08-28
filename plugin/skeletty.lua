@@ -1,30 +1,14 @@
 if vim.g.loaded_skeletty or vim.fn.has('nvim') ~= 1 then
-  return 
+    return 
 end
 
-
--- make sure we have snippy
+-- make sure we have Snippy
 if not pcall( require, 'snippy' ) then
-  vim.notify( 'skeletty depends on plugin dcampos/nvim-snippy which could not be found' )
-  return 
+    vim.notify( 'Skeletty depends on plugin dcampos/nvim-snippy which could not be found' )
+    return 
 end
 
 local skeletty = require('skeletty')
-
---------------------------------------------------------------------------------
---  create commands
-
-local command = vim.api.nvim_create_user_command
-
--- | enable/disable skeletty
-command('SkelettyEnable', function(b) require('skeletty').setup( { enabled = b } ) end, {})
-
--- | enable/disable exclusive 
-command('SkelettyLocalExclusive', function(a) require('skeletty').setup( { localdir_exclusive = b } ) end, {})
-
-
---------------------------------------------------------------------------------
---  populate a new file using matching skeleton (if available)
 
 local group = vim.api.nvim_create_augroup('Skeletty', {})
 
@@ -35,7 +19,18 @@ vim.api.nvim_create_autocmd('BufNewFile', {
 })
 
 
+
 --------------------------------------------------------------------------------
---  
+--  Skeletty commands
+
+local command = vim.api.nvim_create_user_command
+
+-- | enable/disable skeletty
+command('SkelettyEnable', function(b) require('skeletty').setup( { enabled = b } ) end, {})
+
+
+
+
+--------------------------------------------------------------------------------
 
 vim.g.loaded_skeletty = true
