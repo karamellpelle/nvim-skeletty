@@ -181,6 +181,7 @@ end
 
 -- | count overrides and maybe remove them
 local function skeletons_overrides( skeletons )
+    
 
     local len = #skeletons.items
     for i, a in ipairs( skeletons.items ) do
@@ -205,6 +206,7 @@ local function skeletons_overrides( skeletons )
     end
 
     -- remove overrides
+    skeletons.ignores = 0
     if M.config.override == true then
 
         local i = 0
@@ -225,6 +227,8 @@ local function skeletons_overrides( skeletons )
                 -- erase last element (nil-terminated list) 
                 skeletons.items[ (j + 1) ] = nil
 
+                skeletons.ignores = skeletons.ignores + 1
+
                 len = len - 1
             else
 
@@ -241,9 +245,10 @@ end
 --   find skeleton files from filetype of current buffer
 --
 --   Skeletons
---      items     :: [SkeletonItem]     -- ^ set of SkeletonItem
 --      name      :: String             -- ^ name of this collection
 --      kind      :: String             -- ^ kind (for UI hint)
+--      items     :: [SkeletonItem]     -- ^ set of SkeletonItem
+--      ignores   :: UInt               -- ^ number of overridden skeleton files
 --
 local function find_skeletons()
 
@@ -251,8 +256,9 @@ local function find_skeletons()
 
     -- metadata
     ret.name = ""
-    ret.items = {}
     ret.kind = "skeleton"
+    ret.items = {}
+    ret.ignores = 0
 
     -- filetype of current buffer:
     local filetype = vim.bo.ft
@@ -324,6 +330,7 @@ local function expand_skeleton(tpl_file)
 end
 
 
+-- | format item for vim.ui.select 
 local function format_select_item(item)
 
     local line = "" 
@@ -359,7 +366,8 @@ local function select_skeleton( skeletons )
     -- show menu
     local formatter = format_select_item
     local kinder = skeletons.kind
-    local prompter = "Select " .. skeletons.name .. " skeleton"
+    local prompter = "Select " .. skeletons.name .. " Skeleton"
+                     if skeletons.ignores ~= 0 then prompter = prompter .. " (ignoring " .. skeletons.ignores .. " overridden)" end
 
     local opts = { prompt = prompter, format_item = formatter, kind = kinder }
     
