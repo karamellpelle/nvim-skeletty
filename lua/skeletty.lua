@@ -416,6 +416,18 @@ end
 
 
 
+--------------------------------------------------------------------------------
+--  tmp
+tele = require("skeletty.telescope")
+
+tele.skeletty_telescope_pick(
+      nil, {
+        { "red", "#ff0000" },
+        { "green", "#00ff00" },
+        { "blue", "#0000ff" },
+      }
+      )
+
 
 --------------------------------------------------------------------------------
 --  module skeletty where
@@ -424,3 +436,6 @@ M.expand = expand
 M.setup = function(o) set_config( o ) end
 
 return M
+
+
+
