@@ -1,8 +1,10 @@
 M = {}
 
+local log = nil
+
 -- create debug log file
 local function start_debug()
-    local log = io.open("debug-log.txt", "w")
+    log = io.open("debug-log.txt", "w")
     io.output( log ) -- ^ redirect write() to 'log'
     log:write("* * * LOG SESSION * * *\n") log:flush()
 end

@@ -419,21 +419,25 @@ end
 
 --------------------------------------------------------------------------------
 --  tmp
-local tele = require("skeletty.telescope")
-
-function test_telescope()
-    local opts = {}
-    local skeletons = find_skeletons()
-    print( "skeletons: ", #skeletons  )
-    tele.skeletty_telescope_pick( opts,
-        skeletons.items
-        --{ { "hei", "coco" }, { "what", "0x4453" }, { "skeleton", "shekelg" } }
-          )
-
-end
-
-test_telescope()
-
+--package.preload["skeletty.telescope"] = nil
+--local tele = require("skeletty.telescope")
+--
+--local function test_telescope()
+--    local opts = {}
+--    local skeletons = find_skeletons()
+--    print( "skeletons: ", #skeletons  )
+--    tele.skeletty_telescope_pick( opts,
+--        skeletons.items
+--        --{ { "hei", "coco" }, { "what", "0x4453" }, { "skeleton", "shekelg" } }
+--          )
+--
+--end
+--
+--
+--if vim.env.TESTING  then
+--    test_telescope()
+--end
+--
 
 --------------------------------------------------------------------------------
 --  module skeletty where
