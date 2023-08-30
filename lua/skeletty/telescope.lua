@@ -9,12 +9,14 @@ local entry_display = require "telescope.pickers.entry_display"
 
 local myutils = require("skeletty.utils")
 
+-- | displayer :: String -> [UInt] -> ([Value, Highlight] -> String
 local displayer = entry_display.create( {
-  separator = "| ",
+  separator = "|",
   items = {
+    { width = 3 },
     { width = 8 },
-    { width = 4 },
-    { width = 2 },
+    { width = 10 },
+    { width = 10 },
     { remaining = true },
   },
   }
@@ -29,17 +31,13 @@ local function entry_display( entry )
     --return item.name .. "->" .. item.overrides
 
     return displayer {
-      { item.overrides, "TelescopeResultsNumber" },
+      { " " .. item.overrides, "TelescopeResultsNumber" },
+      { item.name, "" },
       { item.tag, "TelescopeResultsComment" },
-      { "**", "DiffChange" },
-      item.name .. ":" .. item.home,
+      { item.scope, "" },
+      { item.home, "" },
+      --{ item., "" },
     }
-    --return displayer {
-    --      { entry.bufnr, "TelescopeResultsNumber" },
-    --      { entry.indicator, "TelescopeResultsComment" },
-    --      { icon, hl_group },
-    --      display_bufname .. ":" .. entry.lnum,
-    --    }
 end
 
 --------------------------------------------------------------------------------
@@ -52,42 +50,55 @@ local function make_entry( item )
       value = item,
       ordinal = item.tag, -- FIXME: define order of SkeletonItems; use priority
       display = entry_display,
+      --filepath = item.filepath, -- 'filepath' is actually an optional field for Entry
     }
 
 end
 
--- our picker function: skeletty_telescope_pick
-local function skeletty_telescope_pick(opts, skeletons)
-  opts = opts or {}
-      --myutils.debug("telescope_pick\n")
-      --myutils.debug( vim.inspect( skeletons ) )
-  pickers.new(opts, {
-    prompt_title = "Pick Skeleton",
-    sorter = conf.generic_sorter( opts ),
 
-    finder = finders.new_table {
+-- | define picker controller
+local function make_mappings( bufnr, map )
 
-        results = skeletons.items,
+    actions.select_default:replace(
+        function()
+            -- this is where the magic happens
+            actions.close(prompt_bufnr)
+            local selection = action_state.get_selected_entry()
 
-        entry_maker = make_entry,
-    },
+            --vim.api.nvim_put({ selection.value[1] }, "", false, true)
 
-    attach_mappings = function(prompt_bufnr, map)
-        actions.select_default:replace(function()
-          actions.close(prompt_bufnr)
-          local selection = action_state.get_selected_entry()
-
-          --vim.api.nvim_put({ selection.value[1] }, "", false, true)
-
-           --print(vim.inspect(selection))
-          vim.api.nvim_put({ vim.inspect(selection) }, "", false, true)
-
+             --print(vim.inspect(selection))
+            vim.api.nvim_put({ vim.inspect(selection) }, "", false, true)
 
         end)
-        return true
-      end,
 
-  }):find()
+    return true
+end
+
+-- our picker function: skeletty_telescope_pick
+local function skeletty_telescope_pick(opts, skeletons)
+
+    opts = opts or {  }
+   
+    -- skull selector (can be overridden by user (telescope.skeletty.selection_caret))
+    opts.selection_caret = opts.selection_caret or '💀' 
+
+    opts.initial_mode = "normal"
+    --opts.path_display = "smart"
+
+    pickers.new(opts, {
+
+        prompt_title = "Pick Skeleton",
+        sorter = conf.generic_sorter( opts ),
+        finder = finders.new_table {
+
+            results = skeletons.items,
+            entry_maker = make_entry,
+        },
+
+        attach_mappings = make_mappings,
+
+    }):find()
 end
 
 local function test_pick()
@@ -114,7 +125,7 @@ local function test_pick()
         local item = {  }
         item.filepath = "/usr/local/secret"
         item.scope = "test-scope"
-        item.home = "/Users"
+        item.home = "/Users/test/snippet" .. (i + 100)
         item.name = v[ 0 + 1 ]
         item.tag = v[ 1 + 1 ]
         item.overrides = i
