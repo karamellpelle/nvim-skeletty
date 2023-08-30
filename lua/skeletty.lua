@@ -4,6 +4,7 @@
 
 utils = require("skeletty.utils")
 
+
 -- export data
 local M = {}
 
@@ -418,15 +419,20 @@ end
 
 --------------------------------------------------------------------------------
 --  tmp
-tele = require("skeletty.telescope")
+local tele = require("skeletty.telescope")
 
-tele.skeletty_telescope_pick(
-      nil, {
-        { "red", "#ff0000" },
-        { "green", "#00ff00" },
-        { "blue", "#0000ff" },
-      }
-      )
+function test_telescope()
+    local opts = {}
+    local skeletons = find_skeletons()
+    print( "skeletons: ", #skeletons  )
+    tele.skeletty_telescope_pick( opts,
+        skeletons.items
+        --{ { "hei", "coco" }, { "what", "0x4453" }, { "skeleton", "shekelg" } }
+          )
+
+end
+
+test_telescope()
 
 
 --------------------------------------------------------------------------------

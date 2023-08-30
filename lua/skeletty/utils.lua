@@ -1,10 +1,11 @@
 M = {}
 
 -- create debug log file
---local log = io.open("debug-log.txt", "w")
---io.output( log ) -- ^ redirect write() to 'log'
---log:write("* * * LOG SESSION * * *\n") log:flush()
-
+local function start_debug()
+    local log = io.open("debug-log.txt", "w")
+    io.output( log ) -- ^ redirect write() to 'log'
+    log:write("* * * LOG SESSION * * *\n") log:flush()
+end
 
 -- | forM :: [a] -> (a -> b) -> [b]
 local function forM(as, map)
@@ -140,9 +141,10 @@ end
 --------------------------------------------------------------------------------
 --  module skeletty.utils where
 
+M.start_debug = start_debug
+M.debug      = debugger
 M.forM    = forM
 M.ix         = ix
-M.debug      = debugger
 M.debugtype  = debugtype
 M.regex_pick = regex_pick
 M.list_append_front = list_append_front

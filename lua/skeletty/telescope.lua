@@ -23,9 +23,9 @@ local function skeletty_telescope_pick(opts, tbl)
       --},
       entry_maker = function(entry)
         return {
-          value = entry,
-          display = entry[1],
-          ordinal = entry[1],
+          value = entry.name,
+          display = entry.filepath,
+          ordinal = entry.tag,
         }
       end
     },
@@ -49,13 +49,6 @@ local function skeletty_telescope_pick(opts, tbl)
 end
 
 
-skeletty_telescope_pick( 
-      nil, {
-        { "red", "#ff0000" },
-        { "green", "#00ff00" },
-        { "blue", "#0000ff" },
-      }
-)
 
 M.skeletty_telescope_pick = skeletty_telescope_pick
 
