@@ -3,73 +3,11 @@
 --
 
 utils = require("skeletty.utils")
+config = require("skeletty.config")
 
 
 -- export data
 local M = {}
-
-
---------------------------------------------------------------------------------
--- Config
---      enabled            :: Bool                               -- ^ toggle Skeletty (AutoCmd: apply skeleton (from filetype) upon new buffer)
---      dirs               :: Maybe( [FilePath] | CSV-String )   -- ^ list of directories with .snippet files, otherwise
---                                                               --   look at runtimepath for 'skeletons/' folders 
---      override           :: Bool                               -- ^ override hiercially if same template filetype and tag
---      localdir           :: Maybe FilePath                     -- ^ directory path relative to current
---      localdir_project   :: Bool                               -- ^ localdir is relative to parent VCS project (i.e. git)
---      localdir_exclusive :: Bool                               -- ^ only use localdir if there are skeletons there 
---
--- | default configuration
-local default_config = {
-    enabled            = true,
-    dirs               = nil,
-    override           = false,
-    localdir           = ".skeletonset",
-    localdir_project   = false,
-    localdir_exclusive = false,
-}
-
--- | init M.config from default values 
-M.config = vim.tbl_extend( "force", {}, default_config )
-
-
---------------------------------------------------------------------------------
--- | write parameters directly or modified into M.config 
---   TODO: make sure we don't write 'nil' to wrong fields
---   TODO: make 'M.config' local
---
-local function set_config(params)
-
-    -- make sure we have a dictionary
-    vim.validate({ params = { params, 'table' }, })
-
-    -- update 'params.dirs' as a list of valid directories
-    -- 'param.dirs' can be a CSV string
-    if params.dirs then
-        local dirs = params.dirs
-        local dir_list = type(dirs) == 'table' and dirs or vim.split(dirs, ',')
-        for k, dir in ipairs(dir_list) do
-            local dir_expanded = vim.fn.expand( dir )
-
-            if vim.fn.isdirectory( dir_expanded ) == 0 then
-                vim.notify( 'Skeletty: skeleton_dir = ' .. dir_expanded .. " does not exists", vim.log.levels.WARN )
-            end
-            -- warn if skeleton folder inside given folder
-            if vim.fn.isdirectory( dir_expanded .. '/skeletonset') == 1 then
-                vim.notify( 'Skeletty: skeleton_dir = ' .. dir_expanded .. " contains a 'skeletonset' child folder which will be ignored", vim.log.levels.WARN )
-            end
-
-            dir_list[k] = dir_expanded
-        end
-
-        params.dirs = dir_list
-    end
-
-    -- insert updated and original values directly into config
-    M.config = vim.tbl_extend( "force", M.config, params )
-end
-
-
 
 
 --------------------------------------------------------------------------------
@@ -78,8 +16,8 @@ end
 --   Skeleton
 --      filepath  :: FilePath                               -- ^ file
 --      scope     :: String ( local | user | runtimepath )  -- ^ scope
---      filetype      :: String (assert name == ft)             -- ^ filetype (i.e. filetype)
---      tag       :: Maybe String                           -- ^ tag filetype
+--      filetype  :: String              -- ^ filetype 
+--      tag       :: Maybe String                           -- ^ filetype tag 
 --      home      :: FilePath                               -- ^ location of file
 --      overrides :: UInt                                   -- ^ number of overrides from higher priority skeletons
 --
@@ -164,7 +102,7 @@ local function expand_localdir(localdir)
     if not localdir or localdir == "" then return nil end
 
     -- shall we use project folder as parent folder for 'localdir'?
-    if M.config.localdir_project == true then
+    if config.get().localdir_project == true then
 
         local project_dir = vim.fn.finddir( '.git/..', vim.fn.fnamemodify( vim.fn.getcwd(), ':p:h' ) .. ';' )
         return project_dir .. '/' .. localdir
@@ -178,7 +116,7 @@ end
 
 
 --------------------------------------------------------------------------------
--- | count overrides (and remove them if M.config.override)
+-- | count overrides (and remove them if config.get().override)
 --
 local function skeletonset_overrides( skeletonset )
 
@@ -206,7 +144,7 @@ local function skeletonset_overrides( skeletonset )
 
     -- remove overrides
     skeletonset.ignores = 0
-    if M.config.override == true then
+    if config.get().override == true then
 
         local i = 0
         local len= #skeletonset.skeletons
@@ -241,18 +179,18 @@ end
 
 
 --------------------------------------------------------------------------------
--- | find_skeletonset() :: IO SkeletonSet
+-- | find_skeletons() :: IO SkeletonSet
 --
 --   find skeleton files from filetype of current buffer
 --
 --   SkeletonSet
 --      name      :: String             -- ^ name of this collection
 --      kind      :: String             -- ^ kind (hint for UI)
---      skeletons     :: [Skeleton]         -- ^ set of Skeleton's
+--      skeletons :: [Skeleton]         -- ^ set of Skeleton's
 --      ignores   :: UInt               -- ^ number of overridden skeleton files
 --      exclusive :: Bool               -- ^ did we exclude non-local skeletonset?
 --
-local function find_skeletonset()
+local function find_skeletons()
 
     local ret = {}
 
@@ -261,7 +199,7 @@ local function find_skeletonset()
     ret.kind = "skeleton"
     ret.skeletons = {}
     ret.ignores = 0
-    ret.exclusive = M.config.localdir_exclusive
+    ret.exclusive = config.get().localdir_exclusive
 
     -- filetype of current buffer:
     local filetype = vim.bo.ft
@@ -272,7 +210,7 @@ local function find_skeletonset()
     -- priority A (local skeletonset):
     -- add local directory and expand to full path,
     -- relative to current folder, or project folder if 'localdir_project'
-    local localdir = expand_localdir( M.config.localdir )
+    local localdir = expand_localdir( config.get().localdir )
     if localdir then
 
       if vim.fn.isdirectory( localdir ) then
@@ -285,13 +223,13 @@ local function find_skeletonset()
     end
 
     -- priority B (user skeletonset) or C (runtimepath skeletonset)
-    if M.config.localdir_exclusive == false or #ret.skeletons == 0 then
+    if config.get().localdir_exclusive == false or #ret.skeletons == 0 then
 
         -- turned out we aren't exclusive at all
         ret.exclusive = false
 
         -- override runtime path if 'dirs' is non-empty
-        local dirs = M.config.dirs
+        local dirs = config.get().dirs
         if dirs and #dirs ~= 0 then 
 
             skeletonset_append_dirs( ret, filetype, dirs, "", { scope = 'user' } )
@@ -302,7 +240,7 @@ local function find_skeletonset()
         end
     end
 
-    -- compute overrides (and remove if 'M.config.override) 
+    -- compute overrides (and remove if 'config.get().override) 
     skeletonset_overrides( ret )
 
     return ret
@@ -400,9 +338,9 @@ end
 local function expand()
 
 
-    if M.config.enabled then
+    if config.get().enabled then
 
-        local skeletonset = find_skeletonset()
+        local skeletonset = find_skeletons()
 
         if #skeletonset.skeletons ~= 0 then
 
@@ -423,7 +361,7 @@ end
 --
 --local function test_telescope()
 --    local opts = {}
---    local skeletonset = find_skeletonset()
+--    local skeletonset = find_skeletons()
 --    print( "skeletonset: ", #skeletonset  )
 --    tele.skeletty_telescope_pick( opts,
 --        skeletonset.skeletons
@@ -442,7 +380,7 @@ end
 --  module skeletty where
 
 M.expand = expand
-M.setup = function(o) set_config( o ) end
+M.setup = config.set
 
 return M
 

@@ -8,18 +8,11 @@ local action_state = require "telescope.actions.state"
 local entry_display = require "telescope.pickers.entry_display"
 
 local myutils = require("skeletty.utils")
+config = require("skeletty.config")
 
 --------------------------------------------------------------------------------
 --  default configuratio
 
-
-local default_opts = {
-    --selection_caret = '💀',
-}
-
----- | init M.config from default values 
---M.config = vim.tbl_extend( "force", {}, default_config )
---
 
 
 --------------------------------------------------------------------------------
@@ -93,14 +86,14 @@ end
 -- our picker function: skeletty_telescope_pick
 local function skeletty_telescope_pick(opts, skeletonset)
 
-    local opts = default_opts
+    local opts = opts or {  }
   
     -- handle user options
 
     -- skull selector (can be overridden by user (telescope.skeletty.selection_caret))
     opts.selection_caret = opts.selection_caret or '💀' 
 
-    opts.initial_mode = "normal"
+  opts.initial_mode = "normal"
     --opts.path_display = "smart"
 
     pickers.new(opts, {

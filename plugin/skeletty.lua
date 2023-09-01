@@ -8,6 +8,12 @@ if not pcall( require, 'snippy' ) then
     return 
 end
 
+-- TMP: enable debug
+local utils = require("skeletty.utils")
+utils.start_debug()
+utils.debug( "debug started!" )
+
+
 local skeletty = require('skeletty')
 
 local group = vim.api.nvim_create_augroup('Skeletty', {})
@@ -27,9 +33,6 @@ local command = vim.api.nvim_create_user_command
 
 -- | enable/disable skeletty
 command('SkelettyEnable', function(b) require('skeletty').setup( { enabled = b } ) end, {})
-
-
-
 
 --------------------------------------------------------------------------------
 

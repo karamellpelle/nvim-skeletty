@@ -2,11 +2,14 @@ M = {}
 
 local log = nil
 
+
 -- create debug log file
 local function start_debug()
-    log = io.open("debug-log.txt", "w")
-    io.output( log ) -- ^ redirect write() to 'log'
-    log:write("* * * LOG SESSION * * *\n") log:flush()
+    if not log then
+        log = io.open("debug-log.txt", "w")
+        io.output( log ) -- ^ redirect write() to 'log'
+        log:write("* * * LOG SESSION * * *\n") log:flush()
+    end
 end
 
 -- | forM :: [a] -> (a -> b) -> [b]
@@ -70,12 +73,13 @@ local function debugtype(tp)
 end
 
 local function debugger(str, tp)
+    if log then
+        if str then log:write(str) log:flush() end
 
-    if str then log:write(str) log:flush() end
+        if tp == nil then return end
 
-    if tp == nil then return end
-
-    debugtype( tp )
+        debugtype( tp )
+    end
 
 end
 
