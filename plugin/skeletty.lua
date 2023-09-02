@@ -21,7 +21,7 @@ local group = vim.api.nvim_create_augroup('Skeletty', {})
 vim.api.nvim_create_autocmd('BufNewFile', {
     group = group,
     pattern = '*.*',
-    callback = function() require 'skeletty'.expand() end
+    callback = function() require 'skeletty'.apply() end
 })
 
 
