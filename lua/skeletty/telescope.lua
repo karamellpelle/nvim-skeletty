@@ -9,6 +9,7 @@ local entry_display = require "telescope.pickers.entry_display"
 
 local myutils = require("skeletty.utils")
 config = require("skeletty.config")
+apply = require("skeletty.apply")
 
 
 --------------------------------------------------------------------------------
@@ -28,9 +29,9 @@ local function make_entry_maker( opts )
     local displayer = entry_display.create( {
         separator = "| ",
         items = {
-            { width = 3 },
-            { width = 8 },
-            { width = 10 },
+            --{ width = 3 },
+            { width = 12 },
+            { width = 16 },
             { width = 10 },
             { remaining = true },
         },
@@ -44,8 +45,8 @@ local function make_entry_maker( opts )
 --myutils.debug( "make_entry->value: " .. vim.inspect( entry.value ) )
         return displayer {
 
-            { " " .. skeleton.overrides, "TelescopeResultsNumber" },
-            { skeleton.filetype, "" },
+            --{ " " .. skeleton.overrides, "TelescopeResultsNumber" },
+            { " " .. skeleton.filetype, "" },
             { skeleton.tag, "TelescopeResultsComment" },
             { skeleton.scope, "" },
             { skeleton.home, "" },
@@ -78,11 +79,12 @@ local function make_mapper(opts)
     return function( bufnr, map )
         actions.select_default:replace( function()
 
-            -- this is where the magic happens
             actions.close(bufnr)
-            local selection = action_state.get_selected_entry()
-
-            vim.api.nvim_put({ vim.inspect(selection) }, "", false, true)
+            local skeleton = action_state.get_selected_entry().value
+           
+            -- this is where the magic happens
+            apply.skeleton( skeleton )
+            --vim.api.nvim_put({ vim.inspect(skeleton) }, "", false, true)
         end)
 
         return true
