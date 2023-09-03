@@ -74,11 +74,12 @@ end
 
 local function debugger(str, tp)
     if log then
-        if str then log:write(str) log:flush() end
 
-        if tp == nil then return end
+        str = (str or "") 
+        if tp then str = str .. vim.inspect( tp ) end
+        str = str .. "\n"
 
-        debugtype( tp )
+        log:write(str) log:flush()
     end
 
 end

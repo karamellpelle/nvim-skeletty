@@ -197,7 +197,9 @@ local function find_skeletons(scope, filetype)
 
        
     -- filetype: either specific, or all if 'nil'
-    local filetype = typename or "*"
+    local filetype = filetype or "*"
+
+    skeletonset.name = filetype
 
     -- if scope is defined, we are we specific about scope 
     local use_config = not scope
@@ -205,7 +207,6 @@ local function find_skeletons(scope, filetype)
     -- scope: either specific, or, if 'nil', depend on config setting
     local scope = scope or { localdir = nil, userdir = nil, runtimepath = nil }
 
-    skeletonset.name = filetype
 
     -- priority A (local skeletons):
     local find_localdir = use_config or scope.localdir == true

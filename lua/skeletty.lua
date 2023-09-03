@@ -104,8 +104,9 @@ local function expand()
 
 
     if config.get().enabled then
-
         local skeletonset = find.skeletons()
+
+utils.debug("expand() find_skeleton: " .. vim.inspect( skeletonset ))
 
         if #skeletonset.skeletons ~= 0 then
 
@@ -127,7 +128,7 @@ local id_bufnewfile = nil
 
 local function bufnewfile_callback(args)
 
-    utils.debug( "bufnewfile " .. vim.inspect( args ) )
+    utils.debug( "bufnewfile ", args )
     -- autocmd will not run if empty filetype, this is to prevent overloading
     -- the user for every new buffer
     local filetype = vim.bo[ args.buf ].filetype
@@ -137,15 +138,14 @@ local function bufnewfile_callback(args)
         return
     end
 
-    utils.debug( "filetype" .. vim.inspect( filetype ) )
+    utils.debug( "filetype ", filetype )
 
     -- find skeletons (using args
     skeletonset = find.skeletons( nil, filetype )
-    utils.debug( "skeltonset" .. vim.inspect( skeletonset ) )
+    utils.debug( "skeltonset",  skeletonset )
 
     -- TODO: choose selector (native, telescope)
-    --if telescope then
-    --select_skeleton( skeletonset )
+    select_skeleton( skeletonset )
 
 end
 
