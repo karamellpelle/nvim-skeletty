@@ -5,7 +5,7 @@
 utils = require("skeletty.utils")
 config = require("skeletty.config")
 find = require("skeletty.find")
---apply = require("skeletty.apply")
+apply = require("skeletty.apply")
 
 -- export data
 local M = {}
@@ -13,60 +13,31 @@ local M = {}
 
 
 --------------------------------------------------------------------------------
--- | use Snippy to insert skeleton and populate snippet fields
--- 
-local function expand_skeleton(tpl_file)
-
-    local file = io.open(tpl_file)
-    local text = file:read('*a')
-    text = text:gsub('\n$', "")
-    local body = vim.split(text, '\n')
-    local snip = {
-        kind = "snipmate",
-        prefix = "",
-        description = "",
-        body = body
-    }
-
-    local ok, snippy = pcall(require, "snippy")
-    if not ok then 
-
-        vim.notify( "Skeletty: could not expand Skeleton, Snippy not found", vim.log.levels.ERROR )
-        return
-    end
-
-    -- call Snippy! 
-    return snippy.expand_snippet( snip, "" )
-end
-
-
-
---------------------------------------------------------------------------------
 -- | format item for vim.ui.select 
 --
-local function format_select_item(item)
+local function selecting_formatter(skeleton)
 
     local line = "" 
 
-    if not item.tag or item.tag == "" then
+    if not skeleton.tag or skeleton.tag == "" then
         
         -- filetype
         line = "(default)"
     else
         -- filetype
-        line = item.tag
+        line = skeleton.tag
     end
 
     -- show overrides
-    line = line .. " " .. string.rep( "*", item.overrides )
+    line = line .. " " .. string.rep( "*", skeleton.overrides )
 
     -- add column with [L] for local skeletonset
     line = line .. string.rep(" ", 16 - #line)
-    if item.scope == "local" then line = line .. " [L]" end
+    if skeleton.scope == "localdir" then line = line .. " [L]" end
 
     -- show 'home'
     line = line .. string.rep(" ", 24 - #line)
-    line = line .. "@ " .. item.home
+    line = line .. "@ " .. skeleton.home
 
     return line
 
@@ -80,7 +51,7 @@ end
 local function select_skeleton( skeletonset )
 
     -- show menu
-    local formatter = format_select_item
+    local formatter = selecting_formatter
     local kinder = skeletonset.kind
     local prompter = "Select " .. skeletonset.name .. " Skeleton"
                      if skeletonset.ignores ~= 0 then prompter = prompter .. " (hiding " .. skeletonset.ignores .. " by override)" end
@@ -89,33 +60,12 @@ local function select_skeleton( skeletonset )
     local opts = { prompt = prompter, format_item = formatter, kind = kinder }
     
     -- select skeleton or cancel
-    vim.ui.select( skeletonset.skeletons, opts, function( item, ix ) 
+    vim.ui.select( skeletonset.skeletons, opts, function( skeleton, ix ) 
 
-            if item then expand_skeleton( item.filepath ) end 
-            --if item then expand_skeleton( item.filepath ) end 
+            if skeleton then apply.skeleton( skeleton ) end 
         end)
 
 end
- 
---------------------------------------------------------------------------------
--- | handle new buffer
---
-local function expand()
-
-
-    if config.get().enabled then
-        local skeletonset = find.skeletons()
-
-utils.debug("expand() find_skeleton: " .. vim.inspect( skeletonset ))
-
-        if #skeletonset.skeletons ~= 0 then
-
-            -- select between candidates and expand skeleton into new buffer
-            select_skeleton( skeletonset )
-        end
-    end
-end
-
 
 
 --------------------------------------------------------------------------------
@@ -128,21 +78,22 @@ local id_bufnewfile = nil
 
 local function bufnewfile_callback(args)
 
-    utils.debug( "bufnewfile ", args )
-    -- autocmd will not run if empty filetype, this is to prevent overloading
-    -- the user for every new buffer
+utils.debug( "bufnewfile ", args )
     local filetype = vim.bo[ args.buf ].filetype
+
+    -- we will not run autocmd if filetype is empty, this is to prevent overloading
+    -- the user for every new buffer
     if not filetype or filetype == "" then
 
         vim.notify( "Could not deduce filetype for " .. args.match .. ", skeleton aborted", vim.log.levels.WARN )
         return
     end
 
-    utils.debug( "filetype ", filetype )
+utils.debug( "filetype ", filetype )
 
     -- find skeletons (using args
     skeletonset = find.skeletons( nil, filetype )
-    utils.debug( "skeltonset",  skeletonset )
+utils.debug( "bufnewfile_callback: skeltonset: ",  skeletonset )
 
     -- TODO: choose selector (native, telescope)
     select_skeleton( skeletonset )
@@ -168,7 +119,7 @@ local function skeletty_setup( params )
             id_bufnewfile = vim.api.nvim_create_autocmd( "BufNewFile", {
                 group = group,
                 pattern = '*.*',
-                callback = bufnewfile_callback, -- FIXME: wrap in function() as lua-guide.txt?
+                callback = bufnewfile_callback, 
                 desc = "Apply skeleton on new buffer based on its filetype"
             })
         end
@@ -186,7 +137,7 @@ end
 --  module skeletty where
 
 M.setup = skeletty_setup
-M.apply = expand
+--M.apply = expand
 
 return M
 
