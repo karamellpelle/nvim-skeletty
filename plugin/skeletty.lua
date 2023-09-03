@@ -14,16 +14,6 @@ utils.start_debug()
 utils.debug( "debug started!" )
 
 
-local skeletty = require('skeletty')
-
-local group = vim.api.nvim_create_augroup('Skeletty', {})
-
-vim.api.nvim_create_autocmd('BufNewFile', {
-    group = group,
-    pattern = '*.*',
-    callback = function() require 'skeletty'.apply() end
-})
-
 
 
 --------------------------------------------------------------------------------
@@ -32,7 +22,10 @@ vim.api.nvim_create_autocmd('BufNewFile', {
 local command = vim.api.nvim_create_user_command
 
 -- | enable/disable skeletty
-command('SkelettyEnable', function(b) require('skeletty').setup( { enabled = b } ) end, {})
+command('SkelettyEnable', 
+        function(b) require('skeletty').setup( { enabled = b } ) end, 
+        { desc = "Enable or disable automatic skeleton application" }
+        )
 
 --------------------------------------------------------------------------------
 

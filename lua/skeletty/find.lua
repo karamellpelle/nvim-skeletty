@@ -21,10 +21,10 @@ local function wrap_filepath(ft, filepath)
 
     local skeleton = { 
         filepath = filepath
-      , scope = ''
-      , home = ''
-      , filetype = ''
-      , tag = ''
+      , scope = ""
+      , home = ""
+      , filetype = ""
+      , tag = ""
       , overrides = 0
     }
 
@@ -78,7 +78,7 @@ local function skeletonset_append_dirs(skeletonset, ft, dirs, sub, meta)
         -- convert filepath to skeleton item 
         utils.forM( skeletons, 
             function(fpath)
-                return vim.tbl_extend( 'force', wrap_filepath( ft, fpath ), meta )
+                return vim.tbl_extend( "force", wrap_filepath( ft, fpath ), meta )
             end
         )
 
@@ -114,7 +114,7 @@ end
 --------------------------------------------------------------------------------
 -- | count overrides (and remove them if config.get().override)
 --
-local function skeletonset_overrides( skeletonset )
+local function skeletonset_overrides( skeletonset, remove )
 
     local len = #skeletonset.skeletons
     for i, a in ipairs( skeletonset.skeletons ) do
@@ -140,7 +140,7 @@ local function skeletonset_overrides( skeletonset )
 
     -- remove overrides
     skeletonset.ignores = 0
-    if config.get().override == true then
+    if remove then 
 
         local i = 0
         local len= #skeletonset.skeletons
@@ -185,7 +185,7 @@ end
 --      ignores   :: UInt               -- ^ number of overridden skeleton files
 --      exclusive :: Bool               -- ^ did we exclude non-local skeletonset?
 --
-local function find_skeletons()
+local function find_skeletons(scope, filetype)
 
     local skeletonset = {}
 
@@ -195,47 +195,78 @@ local function find_skeletons()
     skeletonset.ignores = 0
     skeletonset.exclusive = config.get().localdir_exclusive
 
-    -- filetype of current buffer:
-    local filetype = vim.bo.ft
-    if not filetype or filetype == '' then return skeletonset end
+       
+    -- filetype: either specific, or all if 'nil'
+    local filetype = typename or "*"
+
+    -- if scope is defined, we are we specific about scope 
+    local use_config = not scope
+
+    -- scope: either specific, or, if 'nil', depend on config setting
+    local scope = scope or { localdir = nil, userdir = nil, runtimepath = nil }
 
     skeletonset.name = filetype
 
-    -- priority A (local skeletonset):
-    -- add local directory and expand to full path,
-    -- relative to current folder, or project folder if 'localdir_project'
-    local localdir = expand_localdir( config.get().localdir )
-    if localdir then
+    -- priority A (local skeletons):
+    local find_localdir = use_config or scope.localdir == true
+    if find_localdir then
 
-      if vim.fn.isdirectory( localdir ) then
+        -- add local directory and expand to full path,
+        -- relative to current folder, or project folder if 'localdir_project'
+        local localdir = expand_localdir( config.get().localdir )
+        if localdir then
 
-          skeletonset_append_dirs( skeletonset, filetype, { localdir }, "", { scope = 'local' } )
-      else
+          if vim.fn.isdirectory( localdir ) then
 
-          vim.notify( 'Skeletty: localdir ' .. localdir .. 'is not a valid directory', vim.log.levels.WARN )
-      end
-    end
+              skeletonset_append_dirs( skeletonset, filetype, { localdir }, "", { scope = "localdir" } )
+          else
 
-    -- priority B (user skeletonset) or C (runtimepath skeletonset)
-    if config.get().localdir_exclusive == false or #skeletonset.skeletons == 0 then
-
-        -- turned out we aren't exclusive at all
-        skeletonset.exclusive = false
-
-        -- override runtime path if 'dirs' is non-empty
-        local dirs = config.get().dirs
-        if dirs and #dirs ~= 0 then 
-
-            skeletonset_append_dirs( skeletonset, filetype, dirs, "", { scope = 'user' } )
-        else
-
-            local dirs = vim.split( vim.o.rtp, '\n' )
-            skeletonset_append_dirs( skeletonset, filetype, dirs, "skeletonset/", { scope = 'runtimepath' })
+              vim.notify( 'Skeletty: localdir ' .. localdir .. 'is not a valid directory', vim.log.levels.WARN )
+          end
         end
     end
 
+    -- scope: if specific (userdir og runtimepath), otherwise look at config
+
+    -- config: priority B (userdir skeletons) or C (runtimepath skeletons)
+    if use_config then
+
+        if config.get().localdir_exclusive == false or #skeletonset.skeletons == 0 then
+
+            -- turned out we aren't exclusive at all
+            skeletonset.exclusive = false
+
+            local dirs = config.get().dirs
+            if dirs and #dirs ~= 0 then 
+
+                skeletonset_append_dirs( skeletonset, filetype, dirs, "", { scope = "userdir" } )
+            else
+
+                local dirs = vim.split( vim.o.rtp, '\n' )
+                skeletonset_append_dirs( skeletonset, filetype, dirs, "skeletons/", { scope = "runtimepath" })
+            end
+        end 
+
+    else
+
+        skeletonset.exclusive = false
+
+        if find_userdir == true then
+            
+            skeletonset_append_dirs( skeletonset, filetype, dirs, "", { scope = "userdir" } )
+        end
+
+        if scope.runtimepath == true then
+
+            local dirs = vim.split( vim.o.rtp, '\n' )
+            skeletonset_append_dirs( skeletonset, filetype, dirs, "skeletons/", { scope = "runtimepath" })
+        end
+    end
+
+
     -- compute overrides (and remove if 'config.get().override) 
-    skeletonset_overrides( skeletonset )
+    local remove = use_config and config.get().override == true 
+    skeletonset_overrides( skeletonset, remove )
 
     return skeletonset
 end

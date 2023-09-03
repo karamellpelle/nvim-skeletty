@@ -34,13 +34,13 @@ M.settings = vim.tbl_extend( "force", {}, default_config )
 local function set(params)
 
     -- make sure we have a dictionary
-    vim.validate({ params = { params, 'table' }, })
+    vim.validate({ params = { params, "table" }, })
 
     -- update 'params.dirs' as a list of valid directories
     -- 'param.dirs' can be a CSV string
     if params.dirs then
         local dirs = params.dirs
-        local dir_list = type(dirs) == 'table' and dirs or vim.split(dirs, ',')
+        local dir_list = type(dirs) == "table" and dirs or vim.split(dirs, ',')
         for k, dir in ipairs(dir_list) do
             local dir_expanded = vim.fn.expand( dir )
 
@@ -49,7 +49,7 @@ local function set(params)
             end
             -- warn if skeleton folder inside given folder
             if vim.fn.isdirectory( dir_expanded .. '/skeletonset') == 1 then
-                vim.notify( 'Skeletty: skeleton_dir = ' .. dir_expanded .. " contains a 'skeletonset' child folder which will be ignored", vim.log.levels.WARN )
+                vim.notify( "Skeletty: skeleton_dir = " .. dir_expanded .. " contains a \"skeletons\" child folder which will be ignored", vim.log.levels.WARN )
             end
 
             dir_list[k] = dir_expanded

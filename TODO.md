@@ -14,6 +14,11 @@
   - 
 * (create Telescope extension)
 
+## plan
+* setup auto commands from `setup( enable )`
+* choose skeleton selector (native, telescope)
+* find module with new arguments
+* automatic telescope selection
 
 ## Restructuring
 ```
@@ -55,8 +60,8 @@ lua/skeletty/find.lua
     find_skeletons :: Maybe Scope -> Maybe Type -> SkeletonSet   
     -- ^ Nothing Scope => all scopes (Scope Nothing Nothing Nothing)
         Scope
-            local         -- if nil, use config
-            user          -- if nil, use config
+            localdir         -- if nil, use config
+            userdir          -- if nil, use config
             runtimepath   -- if nil, use config
     -- ^ Nothing Type => all types
     -- ^ Just Scope 
