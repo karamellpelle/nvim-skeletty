@@ -7,7 +7,7 @@ local M = {}
 -- skeleton_apply :: Skeleton -> IO ()
 -- 
 -- ^ use Snippy to insert skeleton and populate snippet fields
---
+-- FIXME: append at top
 local function skeleton_apply(skeleton )
 
     local file = io.open( skeleton.filepath )

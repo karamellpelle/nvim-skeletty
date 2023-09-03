@@ -175,7 +175,7 @@ end
 
 
 --------------------------------------------------------------------------------
--- | find_skeletons() :: IO SkeletonSet
+-- | find_skeletons() :: Maybe Scope -> Maybe FileType -> IO SkeletonSet
 --
 --   find skeleton files from filetype of current buffer
 --

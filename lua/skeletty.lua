@@ -78,7 +78,7 @@ local id_bufnewfile = nil
 
 local function bufnewfile_callback(args)
 
-utils.debug( "bufnewfile ", args )
+--utils.debug( "bufnewfile ", args )
     local filetype = vim.bo[ args.buf ].filetype
 
     -- we will not run autocmd if filetype is empty, this is to prevent overloading
@@ -89,14 +89,21 @@ utils.debug( "bufnewfile ", args )
         return
     end
 
-utils.debug( "filetype ", filetype )
+--utils.debug( "filetype ", filetype )
 
     -- find skeletons (using args
     skeletonset = find.skeletons( nil, filetype )
-utils.debug( "bufnewfile_callback: skeltonset: ",  skeletonset )
 
-    -- TODO: choose selector (native, telescope)
-    select_skeleton( skeletonset )
+    -- select from skeletons, use Telescope if available
+    if pcall( require, "telescope" ) then
+
+        -- Telescope
+        require("skeletty.telescope").pick_skeleton( skeletonset )
+    else
+        
+        -- vim native
+        select_skeleton( skeletonset )
+    end
 
 end
 
@@ -137,7 +144,6 @@ end
 --  module skeletty where
 
 M.setup = skeletty_setup
---M.apply = expand
 
 return M
 
