@@ -12,11 +12,16 @@ local function apply(opts)
     local scope = { localdir = true, userdir = true, runtimepath = true } 
     local skeletonset = find.skeletons( scope, filetype )
 
+    opts.prompt_title = "Append skeleton"
+
     make_skeletty_picker( opts, skeletonset )
 end
 
 local function new(opts)
     vim.cmd.tabnew()
+
+    opts.prompt_title = "New file from"
+
     apply( opts )
 end
 
@@ -37,7 +42,7 @@ return require("telescope").register_extension {
         apply = apply
         -- ^ find and apply:
         --     no filetype (i.e. filename) => select * >>= apply 
-        --     filename                    => select filetype >>= apply 
+        --     filetype                    => select filetype >>= apply 
 
         new = new
         -- ^ create new buf (no filename) >>= select * >>= apply

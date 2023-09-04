@@ -27,11 +27,12 @@ local function make_entry_maker( opts )
 
     -- | displayer :: String -> [UInt] -> ([Value, Highlight] -> String
     local displayer = entry_display.create( {
-        separator = "| ",
+        --separator = "| ",
+        separator = "  ",
         items = {
-            --{ width = 3 },
-            { width = 12 },
-            { width = 16 },
+            { width = 14 },
+            { width = 14 },
+            { width = 1 },
             { width = 10 },
             { remaining = true },
         },
@@ -41,15 +42,26 @@ local function make_entry_maker( opts )
     local display_entry = function( entry )
 
         local skeleton = entry.value
+        
+        --local localdir_project = config.get().localdir_project
+        --local localdir_exclusive = config.get().localdir_exclusive
 
---myutils.debug( "make_entry->value: " .. vim.inspect( entry.value ) )
+        local col_filetype  = skeleton.filetype
+        local col_tag       = skeleton.tag
+        local col_override  = opts.skeletty_display_override == false and "" or 
+                              (skeleton.overrides == 0 and "" or "*")
+        local col_scope     = opts.skeletty_display_scope     == false and "" or 
+                              (skeleton.scope == "localdir" and "localdir" or "")
+        local col_filepath  = opts.skeletty_display_filename  == false and "" or 
+                              skeleton.filepath
+
         return displayer {
 
-            --{ " " .. skeleton.overrides, "TelescopeResultsNumber" },
-            { " " .. skeleton.filetype, "" },
-            { skeleton.tag, "TelescopeResultsComment" },
-            { skeleton.scope, "" },
-            { skeleton.home, "" },
+            { "  " .. col_filetype, "" },
+            { col_tag, "TelescopeResultsIdentifier" },
+            { col_override, "TelescopeResultsOperator" },
+            { col_scope, "TelescopeResultsSpecialComment" },
+            { col_filepath, "" },
         }
     end
 
@@ -58,12 +70,13 @@ local function make_entry_maker( opts )
         
         local skeleton = entry
 
+        local ordinal = skeleton.filetype .. "/" .. skeleton.tag .. "/" .. skeleton.overrides -- FIXME: sorting only works for overrides 0..9
         return {
 
             value = skeleton,
             ordinal = skeleton.tag, -- FIXME: define order of Skeletons; use priority
             display = display_entry,
-            --filepath = skeleton.filepath, -- 'filepath' is actually an optional field for Entry
+            filepath = skeleton.filepath, -- 'filepath' is actually an optional field for Entry
         }
     end
 end
@@ -94,7 +107,6 @@ end
 
 
 -- select skeleton 
--- TODO: handle user options
 local function make_skeletty_picker(opts, skeletonset)
 
     local opts = opts or {  }
@@ -102,9 +114,14 @@ local function make_skeletty_picker(opts, skeletonset)
     -- skull selector (can be overridden by user)
     opts.selection_caret = opts.selection_caret or '💀' 
 
+    opts.skeletty_display_filename = opts.skeletty_display_filename or true
+    opts.skeletty_display_override = opts.skeletty_display_override or false
+    opts.skeletty_display_scope = opts.skeletty_display_scope or true
+    --opts.skeletty_ = opts.skeletty_ or false
+
     pickers.new( opts, {
 
-        prompt_title = "Create new file from", -- TODO: only if new file
+        prompt_title = opts.prompt_title,
 
         sorter = conf.generic_sorter( opts ),
         finder = finders.new_table {
@@ -170,19 +187,13 @@ test_pick()
 
 
 -- | create picker to select between a small set of skeletons
+--   (autocmd)
 M.pick_skeleton = function( skeletonset )
 
      
     -- TODO: extend from Telescope 'conf' ?
 
     local opts = config.get().telescope or {  }
-
-    -- data to picker
-    opts.skeletty_localdir_project = config.get().localdir_project
-    opts.skeletty_localdir_exclusive = config.get().localdir_exclusive
-    opts.skeletty_SkeletonSet_name = skeletonset.name
-    opts.skeletty_SkeletonSet_ignores = skeletonset.ignores
-    opts.skeletty_SkeletonSet_exclusive = skeletonset.exclusive
 
 
     -- default to normal mode since the number of skeletons shouldn't be overwelding
