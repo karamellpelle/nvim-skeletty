@@ -2,6 +2,7 @@ M = {  }
 
 local pickers = require "telescope.pickers"
 local finders = require "telescope.finders"
+local previewers = require "telescope.previewers"
 local conf = require("telescope.config").values
 local actions = require "telescope.actions"
 local action_state = require "telescope.actions.state"
@@ -106,14 +107,16 @@ local function make_mapper(opts)
     end
 end
 
+--------------------------------------------------------------------------------
+--  Preview
+
 
 -- | preview skeleton file (.snippet)
 local function make_previewer( opts )
 
-    return conf.file_previewer( opts )
+    local previewer = require("skeletty.telescope.previewer").skeleton_previewer( opts )
+    return previewer
 
-    -- TODO: add syntax from entry
-    -- TODO: add highlight from .snippet
 end
 
 
