@@ -6,6 +6,7 @@ local conf = require("telescope.config").values
 local actions = require "telescope.actions"
 local action_state = require "telescope.actions.state"
 local entry_display = require "telescope.pickers.entry_display"
+local utils = require "telescope.utils"
 
 local myutils = require("skeletty.utils")
 config = require("skeletty.config")
@@ -53,7 +54,7 @@ local function make_entry_maker( opts )
         local col_scope     = opts.skeletty_display_scope     == false and "" or 
                               (skeleton.scope == "localdir" and "localdir" or "")
         local col_filepath  = opts.skeletty_display_filename  == false and "" or 
-                              skeleton.filepath
+                              utils.transform_path( opts, skeleton.filepath )
 
         return displayer {
 
@@ -76,7 +77,9 @@ local function make_entry_maker( opts )
             value = skeleton,
             ordinal = skeleton.tag, -- FIXME: define order of Skeletons; use priority
             display = display_entry,
-            filepath = skeleton.filepath, -- 'filepath' is actually an optional field for Entry
+            --filepath = skeleton.filepath, -- 'filepath' is actually an optional field for Entry
+            -- for previewer:
+            path = skeleton.filepath, -- 'filepath' is actually an optional field for Entry
         }
     end
 end
@@ -97,11 +100,20 @@ local function make_mapper(opts)
            
             -- this is where the magic happens
             apply.skeleton( skeleton )
-            --vim.api.nvim_put({ vim.inspect(skeleton) }, "", false, true)
         end)
 
         return true
     end
+end
+
+
+-- | preview skeleton file (.snippet)
+local function make_previewer( opts )
+
+    return conf.file_previewer( opts )
+
+    -- TODO: add syntax from entry
+    -- TODO: add highlight from .snippet
 end
 
 
@@ -131,6 +143,7 @@ local function make_skeletty_picker(opts, skeletonset)
         },
 
         attach_mappings = make_mapper( opts ),
+        previewer = make_previewer( opts ),
 
     }):find()
 end

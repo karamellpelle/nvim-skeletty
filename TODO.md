@@ -14,7 +14,8 @@
   - enable disable automatic Telescope
   - 
 * (create Telescope extension)
-
+### tips
+* telescope.extensions: a table with all extension opts
 ## plan
 * setup auto commands from `setup( enable )`
 * choose skeleton selector (native, telescope)
