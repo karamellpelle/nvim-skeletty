@@ -94,15 +94,18 @@ local function bufnewfile_callback(args)
     -- find skeletons (using args
     skeletonset = find.skeletons( nil, filetype )
 
-    -- select from skeletons, use Telescope if available
-    if pcall( require, "telescope" ) then
+    if #skeletonset.skeletons ~= 0 then
 
-        -- Telescope
-        require("skeletty.telescope").pick_skeleton( skeletonset )
-    else
-        
-        -- vim native
-        select_skeleton( skeletonset )
+        -- select from skeletons, use Telescope if available
+        if pcall( require, "telescope" ) then
+
+            -- Telescope
+            require("skeletty.telescope").pick_skeleton( skeletonset )
+        else
+            
+            -- vim native
+            select_skeleton( skeletonset )
+        end
     end
 
 end
