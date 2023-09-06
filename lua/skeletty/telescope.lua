@@ -78,9 +78,9 @@ local function make_entry_maker( opts )
             value = skeleton,
             ordinal = skeleton.tag, -- FIXME: define order of Skeletons; use priority
             display = display_entry,
-            --filepath = skeleton.filepath, -- 'filepath' is actually an optional field for Entry
+
             -- for previewer:
-            path = skeleton.filepath, -- 'filepath' is actually an optional field for Entry
+            path = skeleton.filepath, 
         }
     end
 end
