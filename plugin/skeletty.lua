@@ -21,10 +21,35 @@ utils.debug( "debug started!" )
 
 local command = vim.api.nvim_create_user_command
 
+-- | enable skeletty
+command('SkelettyAutoApplyEnable', 
+    function( arg ) 
+
+        require('skeletty').setup( { apply_auto = true } )
+    end, { 
+
+        desc = "Enable automatic skeleton application",
+        nargs = 0
+    }
+)
+
+-- | disable skeletty
+command('SkelettyAutoApplyDisable', 
+    function( arg ) 
+
+        require('skeletty').setup( { apply_auto = false } )
+    end, { 
+
+        desc = "Disable automatic skeleton application",
+        nargs = 0
+    }
+)
+
+
 -- | enable/disable skeletty
-command('SkelettyAutoApply', 
-        function(b) require('skeletty').setup( { apply_auto = b } ) end, 
-        { desc = "Enable or disable automatic skeleton application" }
+command('SkelettyApply', 
+        function(maybe_filetype) require('skeletty').apply( maybe_filetype ) end, 
+        { desc = "Apply skeleton to current buffer" }
         )
 
 --------------------------------------------------------------------------------

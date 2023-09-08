@@ -67,6 +67,35 @@ local function select_skeleton( skeletonset )
 
 end
 
+local function skeletty_apply( filetype )
+    
+    if not filetype or filetype == "" then
+         
+        local filetype = vim.bo.filetype
+
+    end
+
+    -- if we do not have a filetype at all (i.e. a new, unwritten buffer), choose
+    -- between all skeletosn
+    if filetype == "" then filetype = nil end
+
+    skeletonset = find.skeletons( nil, filetype )
+
+    if #skeletonset.skeletons ~= 0 then
+
+        -- select from skeletons, use Telescope if available
+    
+        if pcall( require, "telescope" ) and config.settings.selector_native_force ~= true then
+
+            -- Telescope
+            require("skeletty.telescope").pick_skeleton( skeletonset )
+        else
+            
+            -- vim native
+            select_skeleton( skeletonset )
+        end
+    end
+end
 
 --------------------------------------------------------------------------------
 --  autocmd callbacks
@@ -78,35 +107,16 @@ local id_bufnewfile = nil
 
 local function bufnewfile_callback(args)
 
---utils.debug( "bufnewfile ", args )
     local filetype = vim.bo[ args.buf ].filetype
 
-    -- we will not run autocmd if filetype is empty, this is to prevent overloading
-    -- the user for every new buffer
+    -- we will not apply a skeleton if filetype is empty, to prevent 
+    -- automatic skeleton on every new buffer
     if not filetype or filetype == "" then
 
-        vim.notify( "Could not deduce filetype for " .. args.match .. ", skeleton aborted", vim.log.levels.WARN )
         return
     end
 
---utils.debug( "filetype ", filetype )
-
-    -- find skeletons (using args
-    skeletonset = find.skeletons( nil, filetype )
-
-    if #skeletonset.skeletons ~= 0 then
-
-        -- select from skeletons, use Telescope if available
-        if pcall( require, "telescope" ) then
-
-            -- Telescope
-            require("skeletty.telescope").pick_skeleton( skeletonset )
-        else
-            
-            -- vim native
-            select_skeleton( skeletonset )
-        end
-    end
+    skeletty_apply( filetype )
 
 end
 
@@ -137,7 +147,7 @@ local function skeletty_setup( params )
 
         -- delete autocommand. 
         -- TODO: deleting autocommand group is better (when we have more autocommands)
-        if id_bufnewfile then nvim_del_autocmd( id_bufnewfile ) end
+        if id_bufnewfile then vim.api.nvim_del_autocmd( id_bufnewfile ) end
         id_bufnewfile = nil
     end
 
@@ -147,6 +157,7 @@ end
 --  module skeletty where
 
 M.setup = skeletty_setup
+M.apply = skeletty_apply
 
 return M
 

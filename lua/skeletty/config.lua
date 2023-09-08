@@ -14,6 +14,7 @@ local M = {}
 --      localdir_exclusive :: Bool                               -- ^ only use localdir if there are skeletons there 
 --      apply_auto         :: Bool                               -- ^ toggle Skeletty AutoCmd: apply skeleton (from filetype) when new buffer
 --      apply_at_top       :: Bool                               -- ^ apply skeleton at top line, otherwise cursor line
+--      natitve_selector_force  :: Bool                          -- ^ use native selector even if Telescope is available
 --
 -- | default configuration
 local default_config = {
@@ -24,6 +25,14 @@ local default_config = {
     localdir_exclusive = false,
     apply_auto         = false,
     apply_at_top       = true,
+
+    native_selector_force = false,
+
+    telescope         = {
+        display_path               = false,
+        display_overrides          = false,
+        display_localdir_exclusive = false,
+    }
 }
 
 
