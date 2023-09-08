@@ -125,7 +125,9 @@ end
 local function make_skeletty_picker(opts, skeletonset)
 
     local opts = opts or {  }
-  
+    
+    opts.results_title = "Skeletons"
+
     -- skull selector (can be overridden by user)
     opts.selection_caret = opts.selection_caret or '💀' 
 
