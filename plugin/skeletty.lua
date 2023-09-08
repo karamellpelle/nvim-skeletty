@@ -22,8 +22,8 @@ utils.debug( "debug started!" )
 local command = vim.api.nvim_create_user_command
 
 -- | enable/disable skeletty
-command('SkelettyEnable', 
-        function(b) require('skeletty').setup( { enabled = b } ) end, 
+command('SkelettyAutoApply', 
+        function(b) require('skeletty').setup( { apply_auto = b } ) end, 
         { desc = "Enable or disable automatic skeleton application" }
         )
 

@@ -7,7 +7,7 @@ local utils = require "telescope.utils"
 local M = {  }
 
 
-local skeleton_previewer2 = function( opts )
+local skeleton_previewer = function( opts )
 
     opts = opts or {}
 
@@ -45,6 +45,12 @@ local skeleton_previewer2 = function( opts )
                 callback = function(bufnr) 
 
                     vim.api.nvim_buf_set_option( bufnr, "syntax", skeleton.filetype )
+
+                    -- TODO: add highlight from .snippet
+                    vim.cmd( [[match Error "\v\$\{.{-}\}"]] )
+
+                    -- "syn region  hsBlockComment     start=\"${\"  end=\"}\" contains=hsBlockComment"
+                    --
                 end,
             })
           end,
@@ -53,15 +59,7 @@ local skeleton_previewer2 = function( opts )
 end 
 
 
-local function skeleton_previewer( opts )
 
-    --return skeleton_previewer1.new( opts )
-    return skeleton_previewer2( opts )
---return conf.file_previewer( opts )
-end
-
-    -- TODO: add syntax from entry
-    -- TODO: add highlight from .snippet
 --------------------------------------------------------------------------------
 --  module skeletty.telescope.previewer
 

@@ -121,7 +121,7 @@ local function skeletty_setup( params )
     config.set(  params  )
 
     -- enable or disable automatic application of skeletons for _new files_
-    if config.settings.enabled then
+    if config.settings.apply_auto then
 
         if not id_bufnewfile then
 

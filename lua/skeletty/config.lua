@@ -6,22 +6,24 @@ local M = {}
 
 --------------------------------------------------------------------------------
 -- Config
---      enabled            :: Bool                               -- ^ toggle Skeletty (AutoCmd: apply skeleton (from filetype) upon new buffer)
 --      dirs               :: Maybe( [FilePath] | CSV-String )   -- ^ list of directories with .snippet files, otherwise
 --                                                               --   look at runtimepath for 'skeletons/' folders 
 --      override           :: Bool                               -- ^ override hiercially if same template filetype and tag
 --      localdir           :: Maybe FilePath                     -- ^ directory path relative to current
 --      localdir_project   :: Bool                               -- ^ localdir is relative to parent VCS project (i.e. git)
 --      localdir_exclusive :: Bool                               -- ^ only use localdir if there are skeletons there 
+--      apply_auto         :: Bool                               -- ^ toggle Skeletty AutoCmd: apply skeleton (from filetype) when new buffer
+--      apply_at_top       :: Bool                               -- ^ apply skeleton at top line, otherwise cursor line
 --
 -- | default configuration
 local default_config = {
-    enabled            = true,
     dirs               = nil,
     override           = false,
     localdir           = ".skeletons",
     localdir_project   = false,
     localdir_exclusive = false,
+    apply_auto         = false,
+    apply_at_top       = true,
 }
 
 
@@ -29,7 +31,7 @@ M.settings = vim.tbl_extend( "force", {}, default_config )
 
 
 --------------------------------------------------------------------------------
--- | write parameters directly or modified into settings 
+-- | urite parameters directly or modified into settings 
 --   TODO: make sure we don't write 'nil' to wrong fields
 local function set(params)
 
