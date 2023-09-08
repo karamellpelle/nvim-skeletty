@@ -46,11 +46,19 @@ command('SkelettyAutoApplyDisable',
 )
 
 
--- | enable/disable skeletty
+-- | apply skeleton from given filetype (or all if *)
 command('SkelettyApply', 
-        function(maybe_filetype) require('skeletty').apply( maybe_filetype ) end, 
-        { desc = "Apply skeleton to current buffer" }
-        )
+      function( arg ) 
+
+          local filetype = arg.fargs[1]
+          if filetype == "*" then filetype = nil end
+          require('skeletty').apply( filetype )
+
+      end, { 
+          desc = "Apply skeleton to current buffer",
+          nargs = 1
+      }
+)
 
 --------------------------------------------------------------------------------
 
