@@ -2,6 +2,7 @@ local find = require("skeletty.find")
 local skeletty_telescope = require("skeletty.telescope")
 
 
+-- FIXME
 local function apply(opts)
 
     -- do we have a filetype of current buffer?
@@ -17,9 +18,12 @@ local function apply(opts)
     make_skeletty_picker( opts, skeletonset )
 end
 
+-- FIXME
 local function new(opts)
+    --if not bufempty then tabnew
     vim.cmd.tabnew()
 
+    --if filetype 
     opts.prompt_title = "New file from"
 
     apply( opts )
@@ -41,11 +45,12 @@ return require("telescope").register_extension {
 
         apply = apply
         -- ^ find and apply:
-        --     no filetype (i.e. filename) => select * >>= apply 
-        --     filetype                    => select filetype >>= apply 
+        --     select * >>= apply 
 
         new = new
         -- ^ create new buf (no filename) >>= select * >>= apply
+        -- if buf empty: select (*|filetype) >>= apply
+        -- else        : tabnew and new
 
     },
 }

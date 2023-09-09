@@ -7,7 +7,7 @@ local M = {}
 
 
 --------------------------------------------------------------------------------
---| FilePath -> IO Skeleton
+--| FilePath -> FilePath -> IO Skeleton
 --
 --   Skeleton
 --      filepath  :: FilePath                               -- ^ file
@@ -17,42 +17,53 @@ local M = {}
 --      home      :: FilePath                               -- ^ location of file
 --      overrides :: UInt                                   -- ^ number of overrides from higher priority skeletons
 --
-local function wrap_filepath(ft, filepath)
+-- TODO: return nil if error
+local function wrap_filepath(dir, ft, filepath)
 
     local skeleton = { 
         filepath = filepath
       , scope = ""
-      , home = ""
+      , home = dir
       , filetype = ""
       , tag = ""
       , overrides = 0
     }
+  
+    if ft == "" or ft == "*" or ft == nil then
+        ft = "[A-Za-z0-9_]+"
+    end
+    
+    -- escape punktuation characters
+    dir = string.gsub( dir, "%p", "%%%1" )
 
     -- non-tagged skeleton file?
-    local regexA = [[(.*)]] ..  [[(]] .. ft .. [[)]] .. [[\.]] .. [[(snippet)]] .. [[$]]
-    --               home               filetype                          ext
+    local regexA = --[[dir ..]] "/" ..  "(" .. ft .. ")" .. "%.snippet$"
+    --             home                      filetype            ext
 
-    local home, filetype, ext = utils.regex_pick( filepath, regexA )     
-    if home and filetype and ext then
+    local filetype = string.match( filepath, regexA )
+    if filetype then
         skeleton.filetype = filetype
         skeleton.home = home
+
         return skeleton
     end
 
     -- tagged?
-    regexBC = [[(.*)]] .. [[(]] .. ft .. [[)]] .. [[(/|-)]] .. [[(\w+)]] .. [[\.]] .. [[(snippet)]] .. [[$]]
-    --          home              filetype              / or -        tag                       ext 
-    
-    local home, filetype, sep, tag, ext = utils.regex_pick( filepath, regexBC )
-    if home and filetype and sep and tag and ext then
+    regexBC = --[[dir ..--]] "/" .. "(" .. ft .. ")" .. "[%-/]" .. "([A-Za-z0-9_]+)" .. "%.snippet$"
+    --        home                       filetype         / or -          tag                 ext 
+  
+    local filetype, tag = string.match( filepath, regexBC )
+    if filetype and tag then
         skeleton.home = home
         skeleton.filetype = filetype
         skeleton.tag  = tag
+
         return skeleton
     end
 
     vim.notify( "Could not match filepath " .. filepath, vim.log.levels.ERROR )
     return skeleton
+    -- ^ FIXME: return nil
 end
 
 
@@ -64,28 +75,31 @@ end
 --
 local function skeletonset_append_dirs(skeletonset, ft, dirs, sub, meta)
 
+utils.debug( "skeletonset append dirs: ", dirs )
     -- flatten table into comma separated list and convert to fullpath from globs
-    local paths = table.concat( dirs, ',' )
-    for k, expr in ipairs({
-        sub .. ft .. '.snippet',     -- [filetype]
-        sub .. ft .. '-*.snippet',   -- [filetype]-[tag]
-        sub .. ft .. '/*.snippet',   -- [filetype]/[tag]
-    }) do
-        -- add all files matching globs above, for each directory in 'paths' (comma separated)
-        -- TODO: find search order (depth first?) to know the priority of skeletons
-        local skeletons = vim.fn.globpath( paths, expr, false, true)
+    for _, dir in ipairs( dirs ) do
 
-        -- convert filepath to skeleton item 
-        utils.forM( skeletons, 
-            function(fpath)
-                return vim.tbl_extend( "force", wrap_filepath( ft, fpath ), meta )
-            end
-        )
+        for _, expr in ipairs( {
 
-        -- add skeletons to the end (lower priority)
-        vim.list_extend( skeletonset.skeletons, skeletons )
-      end
+            sub .. ft .. '.snippet',     -- [filetype]
+            sub .. ft .. '-*.snippet',   -- [filetype]-[tag]
+            sub .. ft .. '/*.snippet',   -- [filetype]/[tag]
+        }) do
 
+            -- add all files matching globs above, for each directory in 'dirs' 
+            local skeletons = vim.fn.globpath( dir, expr, false, true)
+
+            -- convert filepath to skeleton item 
+            utils.forM( skeletons, 
+                function(fpath)
+                    return vim.tbl_extend( "force", wrap_filepath( dir, ft, fpath ), meta )
+                end
+            )
+
+            -- add skeletons to the end (lower priority)
+            vim.list_extend( skeletonset.skeletons, skeletons )
+        end
+    end
 end
 
 
