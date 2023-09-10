@@ -2,34 +2,58 @@ local find = require("skeletty.find")
 local skeletty_telescope = require("skeletty.telescope")
 
 
--- FIXME
-local function apply(opts)
+-- | apply skeleton to current buffer
+local function apply_(opts, filetype)
 
-    -- do we have a filetype of current buffer?
-    local filetype = vim.bo.filetype
+    opts = opts or {  }
+    
+    if not filetype or filetype == "" then
+         
+        filetype = vim.bo.filetype
+    end
+
+    -- if we do not have a filetype at all (i.e. a new, unwritten buffer), choose
+    -- between all skeletosn
     if filetype == "" then filetype = nil end
 
-    -- this will find all skeleton files, regardless of Skeletty config
-    local scope = { localdir = true, userdir = true, runtimepath = true } 
-    local skeletonset = find.skeletons( scope, filetype )
+    skeletonset = find.skeletons( nil, filetype )
 
-    opts.prompt_title = "Append skeleton"
+    if #skeletonset.skeletons ~= 0 then
 
-    make_skeletty_picker( opts, skeletonset )
+        opts.prompt_title = opts.prompt_title or "Append skeleton"
+
+        skeletty_telescope.make_skeletty_picker( opts, skeletonset )
+    end
+
 end
 
--- FIXME
+local function apply(opts, filetype)
+
+    -- TODO: retrieve arg from Telescope command line
+    filetype = "*"
+
+    apply_( opts, filetype )
+end
+
+
+-- | apply skeleton to new buffer
 local function new(opts)
 
-    --if not bufempty then tabnew
-    vim.cmd.tabnew()
+    opts = opts or {  }
 
-    --if filetype 
+    -- is current buffer empty?
+    local lines = vim.fn.getline(1, "$")
+    local is_empty = #lines <= 1 and lines[ 1 ] == "" or false
+
+    if not is_empty then 
+
+        vim.cmd.tabnew()
+    end
+    
     opts.prompt_title = "New file from"
 
-    apply( opts )
+    apply_( opts, nil )
 end
-
 
 return require("telescope").register_extension {
 
@@ -43,15 +67,16 @@ return require("telescope").register_extension {
     end,
 
     exports = {
+        -- default command
+        skeletty = new,
 
-        apply = apply
-        -- ^ find and apply:
-        --     select * >>= apply 
+        -- apply on empty buffer
+        new = new,
 
-        new = new
-        -- ^ create new buf (no filename) >>= select * >>= apply
-        -- if buf empty: select (*|filetype) >>= apply
-        -- else        : tabnew and new
+        -- apply on current buffer
+        apply = apply, 
+
 
     },
 }
+

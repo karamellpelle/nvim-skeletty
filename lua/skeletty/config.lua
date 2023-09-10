@@ -28,11 +28,9 @@ local default_config = {
 
     native_selector_force = false,
 
-    telescope         = {
-        display_path               = false,
-        display_overrides          = false,
-        display_localdir_exclusive = false,
-    }
+    display_path               = false,
+    display_overrides          = false,
+    display_localdir_exclusive = false,
 }
 
 
