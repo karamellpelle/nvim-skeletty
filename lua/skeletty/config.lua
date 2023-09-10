@@ -78,7 +78,7 @@ end
 
 
 --------------------------------------------------------------------------------
---  module skeletty where
+--  module skeletty.config where
 
 M.set = set
 

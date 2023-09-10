@@ -37,7 +37,7 @@ local function wrap_filepath(dir, ft, filepath)
     dir = string.gsub( dir, "%p", "%%%1" )
 
     -- non-tagged skeleton file?
-    local regexA = --[[dir ..]] "/" ..  "(" .. ft .. ")" .. "%.snippet$"
+    local regexA = dir .. "/" ..  "(" .. ft .. ")" .. "%.snippet$"
     --             home                      filetype            ext
 
     local filetype = string.match( filepath, regexA )
@@ -49,7 +49,7 @@ local function wrap_filepath(dir, ft, filepath)
     end
 
     -- tagged?
-    regexBC = --[[dir ..--]] "/" .. "(" .. ft .. ")" .. "[%-/]" .. "([A-Za-z0-9_]+)" .. "%.snippet$"
+    regexBC = dir .. "/" .. "(" .. ft .. ")" .. "[%-/]" .. "([A-Za-z0-9_]+)" .. "%.snippet$"
     --        home                       filetype         / or -          tag                 ext 
   
     local filetype, tag = string.match( filepath, regexBC )
@@ -75,7 +75,6 @@ end
 --
 local function skeletonset_append_dirs(skeletonset, ft, dirs, sub, meta)
 
-utils.debug( "skeletonset append dirs: ", dirs )
     -- flatten table into comma separated list and convert to fullpath from globs
     for _, dir in ipairs( dirs ) do
 
@@ -266,7 +265,7 @@ local function find_skeletons(scope, filetype)
 
         skeletonset.exclusive = false
 
-        if find_userdir == true then
+        if scope.userdir == true then
             
             skeletonset_append_dirs( skeletonset, filetype, dirs, "", { scope = "userdir" } )
         end
