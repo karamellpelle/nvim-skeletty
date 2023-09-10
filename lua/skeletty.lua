@@ -67,12 +67,11 @@ local function select_skeleton( skeletonset )
 
 end
 
-local function skeletty_apply( filetype )
-    
+local function skeletty_apply( filetype ) 
+
     if not filetype or filetype == "" then
          
-        local filetype = vim.bo.filetype
-
+        filetype = vim.bo.filetype
     end
 
     -- if we do not have a filetype at all (i.e. a new, unwritten buffer), choose
@@ -95,6 +94,22 @@ local function skeletty_apply( filetype )
             select_skeleton( skeletonset )
         end
     end
+end
+
+
+-- | append to an empty buffer
+local function skeletty_new()
+    
+    -- is current buffer empty?
+    local lines = vim.fn.getline(1, "$")
+    local is_empty = #lines <= 1 and lines[ 1 ] == "" or false
+
+    if not is_empty then 
+        vim.cmd.tabnew()
+
+    end
+    
+    skeletty_apply( nil )
 end
 
 --------------------------------------------------------------------------------
@@ -131,7 +146,7 @@ local function skeletty_setup( params )
     config.set(  params  )
 
     -- enable or disable automatic application of skeletons for _new files_
-    if config.settings.apply_auto then
+    if config.settings.auto then
 
         if not id_bufnewfile then
 
@@ -158,6 +173,7 @@ end
 
 M.setup = skeletty_setup
 M.apply = skeletty_apply
+M.new = skeletty_new
 
 return M
 

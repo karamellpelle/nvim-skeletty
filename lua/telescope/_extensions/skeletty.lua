@@ -20,6 +20,7 @@ end
 
 -- FIXME
 local function new(opts)
+
     --if not bufempty then tabnew
     vim.cmd.tabnew()
 

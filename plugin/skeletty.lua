@@ -9,10 +9,7 @@ if not pcall( require, 'snippy' ) then
 end
 
 -- TMP: enable debug
-local utils = require("skeletty.utils")
-utils.start_debug()
-utils.debug( "debug started!" )
-
+local utils = require("skeletty.utils") utils.start_debug() utils.debug( "debug started!" )
 
 
 
@@ -22,10 +19,10 @@ utils.debug( "debug started!" )
 local command = vim.api.nvim_create_user_command
 
 -- | enable skeletty
-command('SkelettyAutoApplyEnable', 
+command('SkelettyAutoEnable', 
     function( arg ) 
 
-        require('skeletty').setup( { apply_auto = true } )
+        require('skeletty').setup( { auto = true } )
     end, { 
 
         desc = "Enable automatic skeleton application",
@@ -34,10 +31,10 @@ command('SkelettyAutoApplyEnable',
 )
 
 -- | disable skeletty
-command('SkelettyAutoApplyDisable', 
+command('SkelettyAutoDisable', 
     function( arg ) 
 
-        require('skeletty').setup( { apply_auto = false } )
+        require('skeletty').setup( { auto = false } )
     end, { 
 
         desc = "Disable automatic skeleton application",
@@ -45,6 +42,17 @@ command('SkelettyAutoApplyDisable',
     }
 )
 
+
+-- | apply skeleton from given filetype (or all if *)
+command('Skeletty', 
+      function( arg ) 
+          require('skeletty').new()
+
+      end, { 
+          desc = "Apply skeleton to empty buffer",
+          nargs = 0
+      }
+)
 
 -- | apply skeleton from given filetype (or all if *)
 command('SkelettyApply', 
@@ -55,7 +63,7 @@ command('SkelettyApply',
           require('skeletty').apply( filetype )
 
       end, { 
-          desc = "Apply skeleton to current buffer",
+          desc = "Apply given skeleton to current buffer",
           nargs = 1
       }
 )

@@ -196,10 +196,10 @@ local function test_pick()
     make_skeletty_picker( opts, skeletonset )
 end
 
-myutils.start_debug()
-test_pick()
-
-
+--myutils.start_debug()
+--test_pick()
+--
+--
 --------------------------------------------------------------------------------
 --  module skeletty.telescope where
 

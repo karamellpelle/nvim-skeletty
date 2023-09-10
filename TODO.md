@@ -3,6 +3,9 @@
 * apply at top of buffer
 * create `doc.txt` 
 
+## FIXME
+* 
+
 ## Telescope
 * create Telescope extension
 * mappings: show overrides (default off), path (default off), localdir_only (default off)
