@@ -67,18 +67,22 @@ local function select_skeleton( skeletonset )
 
 end
 
-local function skeletty_apply( filetype ) 
+local function apply_( scope, filetype ) 
 
+    utils.debug("apply_0: ", vim.inspect(filetype))
     if not filetype or filetype == "" then
          
         filetype = vim.bo.filetype
     end
+    utils.debug("apply_1: ", vim.inspect(filetype))
 
     -- if we do not have a filetype at all (i.e. a new, unwritten buffer), choose
     -- between all skeletosn
     if filetype == "" then filetype = nil end
+    utils.debug("apply_2: ", vim.inspect(filetype))
 
-    skeletonset = find.skeletons( nil, filetype )
+    -- search every directory, ignore 'localdir_exclusive' etc)
+    skeletonset = find.skeletons( scope, filetype )
 
     if #skeletonset.skeletons ~= 0 then
 
@@ -96,6 +100,14 @@ local function skeletty_apply( filetype )
     end
 end
 
+-- | look in every directory for 'filetype' (can be all filetypes)
+local function skeletty_apply( filetype ) 
+
+    local scope = { localdir = true, userdir = true, runtimepath = true }
+    utils.debug("skeletty_apply: ", vim.inspect(filetype))
+    apply_( scope, filetype )
+end
+
 
 -- | append to an empty buffer
 local function skeletty_new()
@@ -109,7 +121,7 @@ local function skeletty_new()
 
     end
     
-    skeletty_apply( nil )
+    apply_( nil, nil )
 end
 
 --------------------------------------------------------------------------------

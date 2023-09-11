@@ -224,11 +224,13 @@ local function find_skeletons(scope, filetype)
     local use_config = not scope
 
     -- scope: either specific, or, if 'nil', depend on config setting
-    local scope = scope or { localdir = nil, userdir = nil, runtimepath = nil }
+    --local scope = scope or { localdir = nil, userdir = nil, runtimepath = nil }
+    --local scope = scope or { localdir = true, userdir = nil, runtimepath = nil }
 
 
     -- priority A (local skeletons):
     local find_localdir = use_config or scope.localdir == true
+    local has_localdir = false
     if find_localdir then
 
         -- add local directory and expand to full path,
@@ -238,6 +240,7 @@ local function find_skeletons(scope, filetype)
 
           if vim.fn.isdirectory( localdir ) then
 
+              has_localdir = true
               skeletonset_append_dirs( skeletonset, filetype, { localdir }, "", { scope = "localdir" } )
           else
 
@@ -251,7 +254,7 @@ local function find_skeletons(scope, filetype)
     -- config: priority B (userdir skeletons) or C (runtimepath skeletons)
     if use_config then
 
-        if config.get().localdir_exclusive == false or #skeletonset.skeletons == 0 then
+        if config.get().localdir_exclusive == false then
 
             -- turned out we aren't exclusive at all
             skeletonset.exclusive = false

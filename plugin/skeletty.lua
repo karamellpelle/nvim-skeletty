@@ -57,13 +57,14 @@ command('Skeletty',
 command('SkelettyApply', 
       function( arg ) 
 
-          local filetype = arg.fargs[1]
-          if filetype == "*" then filetype = nil end
+          local filetype = arg.fargs[1]    
+
           require('skeletty').apply( filetype )
 
       end, { 
           desc = "Apply given skeleton to current buffer",
           nargs = 1
+          -- ^ TODO: nargs = "*" 
       }
 )
 

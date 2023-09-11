@@ -3,7 +3,7 @@ local skeletty_telescope = require("skeletty.telescope")
 
 
 -- | apply skeleton to current buffer
-local function apply_(opts, filetype)
+local function apply_(opts, scope, filetype)
 
     opts = opts or {  }
     
@@ -16,7 +16,7 @@ local function apply_(opts, filetype)
     -- between all skeletosn
     if filetype == "" then filetype = nil end
 
-    skeletonset = find.skeletons( nil, filetype )
+    skeletonset = find.skeletons( scope, filetype )
 
     if #skeletonset.skeletons ~= 0 then
 
@@ -32,7 +32,9 @@ local function apply(opts, filetype)
     -- TODO: retrieve arg from Telescope command line
     filetype = "*"
 
-    apply_( opts, filetype )
+    -- look in every directory
+    local scope = { localdir = true, userdir = true, runtimepath = true }
+    apply_( opts, scope, filetype )
 end
 
 
@@ -52,7 +54,7 @@ local function new(opts)
     
     opts.prompt_title = "New file from"
 
-    apply_( opts, nil )
+    apply_( opts, nil, nil )
 end
 
 return require("telescope").register_extension {
