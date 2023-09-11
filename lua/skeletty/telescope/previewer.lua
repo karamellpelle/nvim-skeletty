@@ -40,17 +40,24 @@ local skeleton_previewer = function( opts )
                 preview = opts.preview,
                 file_encoding = opts.file_encoding,
 
-                -- custom highlighting based on skeleton filetype
+                -- we need custom highlighting based on skeleton filetype
                 use_ft_detect = false,
                 callback = function(bufnr) 
 
+                    -- set syntax to filetype defined by skeleton
                     vim.api.nvim_buf_set_option( bufnr, "syntax", skeleton.filetype )
 
-                    -- TODO: add highlight from .snippet
-                    vim.cmd( [[match Error "\v\$\{.{-}\}"]] )
+                    -- syntax highlight of snippet placeholders
+                    -- FIXME: this does not always work because of syntax priority, see :h syn-priority.
+                    --        example haskell: import ${n:x} overrides range below 
+                    vim.api.nvim_buf_call( bufnr, function()
 
-                    -- "syn region  hsBlockComment     start=\"${\"  end=\"}\" contains=hsBlockComment"
-                    --
+                        local skeletty_higroup = opts.skeletty_higroup or [[SkelettyPlaceholder]]
+                        -- ${n:x}
+                        vim.cmd( [[syn region ]] .. skeletty_higroup .. [[ start="${" end="}" contains=]] .. skeletty_higroup)
+                        -- $n
+                        vim.cmd( [[syn match ]] .. skeletty_higroup .. [[ "$\d\+"]])
+                    end)
                 end,
             })
           end,

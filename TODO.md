@@ -5,7 +5,7 @@
 * use display settings (native and telescope)
 
 ## FIXME
-* 
+* config expand telescope field, don't overwrite
 
 ## Telescope
 * create mappings: show overrides (default off), path (default off), localdir_only (default off)

@@ -8,13 +8,14 @@ local M = {}
 -- Config
 --      dirs               :: Maybe( [FilePath] | CSV-String )   -- ^ list of directories with .snippet files, otherwise
 --                                                               --   look at runtimepath for 'skeletons/' folders 
---      override           :: Bool                               -- ^ override hiercially if same template filetype and tag
---      localdir           :: Maybe FilePath                     -- ^ directory path relative to current
---      localdir_project   :: Bool                               -- ^ localdir is relative to parent VCS project (i.e. git)
---      localdir_exclusive :: Bool                               -- ^ only use localdir if there are skeletons there 
---      auto               :: Bool                               -- ^ toggle Skeletty AutoCmd: apply skeleton (from filetype) when new buffer
---      apply_at_top       :: Bool                               -- ^ apply skeleton at top line, otherwise cursor line
---      natitve_selector_force  :: Bool                          -- ^ use native selector even if Telescope is available
+--      override               :: Bool                           -- ^ override hiercially if same template filetype and tag
+--      localdir               :: Maybe FilePath                 -- ^ directory path relative to current
+--      localdir_project       :: Bool                           -- ^ localdir is relative to parent VCS project (i.e. git)
+--      localdir_exclusive     :: Bool                           -- ^ only use localdir if there are skeletons there (otherwise look at userdir or runtimepath)
+--      auto                   :: Bool                           -- ^ toggle Skeletty AutoCmd: apply skeleton (from filetype) when new buffer
+--      apply_at_top           :: Bool                           -- ^ apply skeleton at top line, otherwise cursor line
+--      natitve_selector_force :: Bool                           -- ^ use native selector even if Telescope is available (you probably don't want this)
+--      telescope              :: Telescope                      -- ^ settings for Telescope 
 --
 -- | default configuration
 local default_config = {
@@ -28,9 +29,15 @@ local default_config = {
 
     native_selector_force = false,
 
-    display_path               = false,
-    display_overrides          = false,
-    display_localdir_exclusive = false,
+    -- FIXME: take these out of "telescope' in order define display
+    --        settings for native selector also?
+    telescope          = {
+        -- display settings. TDOD: make toogleable by mappings
+        skeletty_display_path               = false,  
+        skeletty_display_overrides          = false,
+        skeletty_display_localdir_exclusive = false,
+        skeletty_higroup                    = "SkelettyPlaceholder"
+    }
 }
 
 
@@ -68,6 +75,7 @@ local function set(params)
     end
 
     -- insert updated and original values directly into config
+    -- FIXME: extend 'telescope' field, not overwrite
     M.settings = vim.tbl_extend( "force", M.settings, params )
 
 end

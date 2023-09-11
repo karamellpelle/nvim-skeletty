@@ -8,9 +8,8 @@ if not pcall( require, 'snippy' ) then
     return 
 end
 
--- TMP: enable debug
+-- TODO: disable debug
 local utils = require("skeletty.utils") utils.start_debug() utils.debug( "debug started!" )
-
 
 
 --------------------------------------------------------------------------------

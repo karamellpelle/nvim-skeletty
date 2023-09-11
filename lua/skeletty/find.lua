@@ -272,7 +272,10 @@ local function find_skeletons(scope, filetype)
 
         if scope.userdir == true then
             
-            skeletonset_append_dirs( skeletonset, filetype, dirs, "", { scope = "userdir" } )
+            local dirs = config.get().dirs
+            if dirs and #dirs ~= 0 then 
+                skeletonset_append_dirs( skeletonset, filetype, dirs, "", { scope = "userdir" } )
+            end
         end
 
         if scope.runtimepath == true then

@@ -13,6 +13,9 @@ local myutils = require("skeletty.utils")
 config = require("skeletty.config")
 apply = require("skeletty.apply")
 
+-- | create default highlight group
+vim.cmd( [[hi SkelettyPlaceholder cterm=bold ctermfg=231 ctermbg=33]] )
+
 
 --------------------------------------------------------------------------------
 -- Entry 
@@ -157,7 +160,7 @@ end
 
 --------------------------------------------------------------------------------
 --  test
-
+--[[
 local function test_pick()
     local skeletonset = {  }
     skeletonset.name = "SKELETONS"
@@ -196,20 +199,21 @@ local function test_pick()
     make_skeletty_picker( opts, skeletonset )
 end
 
---myutils.start_debug()
---test_pick()
---
---
+myutils.start_debug()
+test_pick()
+
+--]]
+
 --------------------------------------------------------------------------------
 --  module skeletty.telescope where
 
 
--- | create picker to select between a small set of skeletons
---   (autocmd)
+-- | create picker to select between a small set of skeletons. settings from 
+--   skeletty user config
 M.pick_skeleton = function( skeletonset )
 
      
-    -- TODO: extend from Telescope 'conf' ?
+    -- TODO: extend from 'conf' above?
 
     local opts = config.get().telescope or {  }
 
@@ -222,7 +226,7 @@ M.pick_skeleton = function( skeletonset )
     make_skeletty_picker( opts, skeletonset )
 end
 
--- | general interface (usable for the Skeletty Telescope extension)
+-- | general interface for the Skeletty Telescope extension
 M.make_skeletty_picker = make_skeletty_picker
 
 return M
