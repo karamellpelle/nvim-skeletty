@@ -48,15 +48,19 @@ local skeleton_previewer = function( opts )
                     vim.api.nvim_buf_set_option( bufnr, "syntax", skeleton.filetype )
 
                     -- syntax highlight of snippet placeholders
-                    -- FIXME: this does not always work because of syntax priority, see :h syn-priority.
-                    --        example haskell: import ${n:x} overrides range below 
                     vim.api.nvim_buf_call( bufnr, function()
 
                         local skeletty_higroup = opts.skeletty_higroup or [[SkelettyPlaceholder]]
-                        -- ${n:x}
-                        vim.cmd( [[syn region ]] .. skeletty_higroup .. [[ start="${" end="}" contains=]] .. skeletty_higroup)
-                        -- $n
-                        vim.cmd( [[syn match ]] .. skeletty_higroup .. [[ "$\d\+"]])
+
+                        ---- ${n:x}
+                        --vim.cmd( [[syn region ]] .. skeletty_higroup .. [[ start="${" end="}" contains=]] .. skeletty_higroup)
+                        ---- $n
+                        --vim.cmd( [[syn match ]] .. skeletty_higroup .. [[ "$\d\+"]])
+                        -- ^ this does not always work because of syntax priority with 'keyword', see :h syn-priority.
+                        --   example haskell: import ${n:x} has higher priority than 'range'. 
+                        --
+                        --   instead, use match (which does not match nested parenthesis
+                        vim.cmd( [[match ]] .. skeletty_higroup .. [[ "\v((\$\{\d+[^}]*\}|\$\d+))"]] )
                     end)
                 end,
             })

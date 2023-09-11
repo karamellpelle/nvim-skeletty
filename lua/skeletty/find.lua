@@ -94,6 +94,7 @@ local function skeletonset_append_dirs(skeletonset, ft, dirs, sub, meta)
             local skeletons = vim.fn.globpath( dir, expr, false, true)
 
             -- convert filepath to skeleton item 
+            -- TODO: custom loop and compare nil from wrap_filepath
             utils.forM( skeletons, 
                 function(fpath)
                     return vim.tbl_extend( "force", wrap_filepath( dir, ft, fpath ), meta )
