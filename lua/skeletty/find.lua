@@ -61,14 +61,15 @@ local function wrap_filepath(dir, ft, filepath)
         return skeleton
     end
     vim.notify( "Could not match filepath " .. filepath, vim.log.levels.ERROR )
---utils.debug("wrap_filepath: dir", dir)
---utils.debug("wrap_filepath: filepath", filepath)
---utils.debug("wrap_filepath: regexA", regexA)
---utils.debug("wrap_filepath: regexBC", regexBC)
---utils.debug("wrap_filepath: ret", skeleton)
-
+--utils.debug("wrap_filepath: dir ", dir)
+--utils.debug("wrap_filepath: filepath ", filepath)
+--utils.debug("wrap_filepath: regexA ", regexA)
+--utils.debug("wrap_filepath: regexBC ", regexBC)
+--utils.debug("wrap_filepath: ret ", skeleton)
+    skeleton.filetype = "ERROR"
+    skeleton.tag = "REGEX"
     return skeleton
-    -- ^ FIXME: return nil
+
 end
 
 
@@ -85,13 +86,13 @@ local function skeletonset_append_dirs(skeletonset, ft, dirs, sub, meta)
 
         for _, expr in ipairs( {
 
-            sub .. ft .. '.snippet',     -- [filetype]
-            sub .. ft .. '-*.snippet',   -- [filetype]-[tag]
-            sub .. ft .. '/*.snippet',   -- [filetype]/[tag]
+            ft .. '.snippet',     -- [filetype]
+            ft .. '-*.snippet',   -- [filetype]-[tag]
+            ft .. '/*.snippet',   -- [filetype]/[tag]
         }) do
 
             -- add all files matching globs above, for each directory in 'dirs' 
-            local skeletons = vim.fn.globpath( dir, expr, false, true)
+            local skeletons = vim.fn.globpath( dir .. sub, expr, false, true)
 
             -- convert filepath to skeleton item 
             -- TODO: custom loop and compare nil from wrap_filepath
@@ -265,7 +266,8 @@ local function find_skeletons(scope, filetype)
                 skeletonset_append_dirs( skeletonset, filetype, dirs, "", { scope = "userdir" } )
             else
 
-                local dirs = vim.split( vim.o.rtp, '\n' )
+                local dirs = vim.split( vim.o.rtp, "," )
+
                 skeletonset_append_dirs( skeletonset, filetype, dirs, "skeletons/", { scope = "runtimepath" })
             end
         end 
@@ -284,7 +286,7 @@ local function find_skeletons(scope, filetype)
 
         if scope.runtimepath == true then
 
-            local dirs = vim.split( vim.o.rtp, '\n' )
+            local dirs = vim.split( vim.o.rtp, "," )
             skeletonset_append_dirs( skeletonset, filetype, dirs, "skeletons/", { scope = "runtimepath" })
         end
     end
