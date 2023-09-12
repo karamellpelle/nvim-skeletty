@@ -52,8 +52,7 @@ local function set(params)
     -- make sure we have a dictionary
     vim.validate({ params = { params, "table" }, })
 
-    -- update 'params.dirs' as a list of valid directories
-    -- 'param.dirs' can be a CSV string
+    -- convert to list of expanded filepaths if 'params.dirs' is a CSV string 
     if params.dirs then
         local dirs = params.dirs
         local dir_list = type(dirs) == "table" and dirs or vim.split(dirs, ',')
@@ -73,10 +72,17 @@ local function set(params)
 
         params.dirs = dir_list
     end
+    
+    -- save telescope
+    local telescope = M.settings.telescope
+    local telescope_params = params.telescope or {  }
+    vim.tbl_extend( "force", telescope, telescope_params )
 
-    -- insert updated and original values directly into config
-    -- FIXME: extend 'telescope' field, not overwrite
+    -- insert updated new values directly into config
     M.settings = vim.tbl_extend( "force", M.settings, params )
+
+    -- write back telescope 
+    M.settings.telescope = telescope
 
 end
 
