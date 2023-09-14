@@ -1,9 +1,10 @@
 # TODO
-* apply at top of buffer
-* create `doc.txt` 
+* implement `apply_at_top` 
+* write `doc/skeletty.txt` 
+* testing
 
 ## Telescope
 * use `skeletty_display_` settings 
 * create mappings: show overrides (default off), path (default off), localdir_only (default off)
-* `:Telescope skeletty apply <filename>` filename argument
+* filename argument: `:Telescope skeletty apply <filename>` 
 
