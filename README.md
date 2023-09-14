@@ -17,7 +17,7 @@ require( "skeletty" ).setup( {
       -- key0 = value0,
       -- key1 = value1,
       -- ...
-  } )
+} )
 ``` 
 
 ## Settings
@@ -28,12 +28,13 @@ dirs               = nil,
 localdir           = ".skeletons",
 -- ^ name of subfolder with local skeletons
 localdir_project   = false,
--- ^ is the local folder relative to current working directory (false) or current Git project (true)?
+-- ^ is the local folder relative to current working directory (false)
+--   or current Git project (true)?
 localdir_exclusive = false,
 -- ^ only look for skeletons in the local directory 
 --   (however, the 'apply' command will look everywhere)
 auto               = false,
--- ^ trigger a skeleton for every new file with a filetype (i.e. file extension)
+-- ^ trig skeleton for every new file with a filetype (i.e. file extension)
 override           = false,
 -- ^ only show skeletons with highest priority when filetype and tag are equal
 apply_at_top       = true,

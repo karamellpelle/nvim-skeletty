@@ -79,7 +79,7 @@ local function make_entry_maker( opts )
         return {
 
             value = skeleton,
-            ordinal = skeleton.tag, -- FIXME: define order of Skeletons; use priority
+            ordinal = ordinal,
             display = display_entry,
 
             -- for previewer:
