@@ -1,7 +1,6 @@
 # TODO
 * write `doc/skeletty.txt` 
 * `:SkelettyApply` with nargs=*
-* fix regex/find
 * test localdir
 * set normal mode after `apply()`
 

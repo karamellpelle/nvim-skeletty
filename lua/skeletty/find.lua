@@ -32,7 +32,10 @@ local function wrap_filepath(dir, ft, filepath)
     if ft == "" or ft == "*" or ft == nil then
         ft = "[A-Za-z0-9_]+"
     end
-    
+   
+    -- remove trailing /
+    dir = string.gsub( dir, [[%/$]], [[]] )
+
     -- escape punktuation characters
     dir = string.gsub( dir, "%p", "%%%1" )
 
@@ -59,13 +62,13 @@ local function wrap_filepath(dir, ft, filepath)
         return skeleton
     end
     vim.notify( "Could not match filepath " .. filepath, vim.log.levels.ERROR )
---utils.debug("wrap_filepath: dir ", dir)
---utils.debug("wrap_filepath: filepath ", filepath)
---utils.debug("wrap_filepath: regexA ", regexA)
---utils.debug("wrap_filepath: regexBC ", regexBC)
---utils.debug("wrap_filepath: ret ", skeleton)
     skeleton.filetype = "ERROR"
     skeleton.tag = "REGEX"
+utils.debug("wrap_filepath: dir ", dir)
+utils.debug("wrap_filepath: filepath ", filepath)
+utils.debug("wrap_filepath: regexA ", regexA)
+utils.debug("wrap_filepath: regexBC ", regexBC)
+utils.debug("wrap_filepath: ret ", skeleton)
     return skeleton
 
 end
