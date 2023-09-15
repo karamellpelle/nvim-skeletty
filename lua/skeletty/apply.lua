@@ -1,4 +1,5 @@
 utils = require("skeletty.utils")
+config = require("skeletty.config")
 
 -- export data
 local M = {}
@@ -9,6 +10,12 @@ local M = {}
 -- ^ use Snippy to insert skeleton and populate snippet fields
 -- FIXME: append at top
 local function skeleton_apply(skeleton )
+
+    if config.get().apply_at_top == true then
+
+        vim.cmd( "normal ggO" )
+        vim.api.nvim_win_set_cursor( 0, { 1,0 } )
+    end
 
     local file = io.open( skeleton.filepath )
     local text = file:read('*a')
