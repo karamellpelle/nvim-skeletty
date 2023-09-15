@@ -34,7 +34,7 @@ local function wrap_filepath(dir, ft, filepath)
     end
    
     -- remove trailing /
-    dir = string.gsub( dir, [[%/$]], [[]] )
+    dir = string.gsub( dir, [[%/+$]], [[]] )
 
     -- escape punktuation characters
     dir = string.gsub( dir, "%p", "%%%1" )
