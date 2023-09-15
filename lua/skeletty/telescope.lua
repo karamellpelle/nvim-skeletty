@@ -57,8 +57,8 @@ local function make_entry_maker( opts )
                               (skeleton.overrides == 0 and "" or "*")
         local col_scope     = opts.skeletty_display_scope     == false and "" or 
                               (skeleton.scope == "localdir" and "localdir" or "")
-        local col_filepath  = opts.skeletty_display_filename  == false and "" or 
-                              utils.transform_path( opts, skeleton.filepath )
+        local col_path  = opts.skeletty_display_filename  == false and "" or 
+                              utils.transform_path( opts, skeleton.home )
 
         return displayer {
 
@@ -66,7 +66,7 @@ local function make_entry_maker( opts )
             { col_tag, "TelescopeResultsIdentifier" },
             { col_override, "TelescopeResultsOperator" },
             { col_scope, "TelescopeResultsSpecialComment" },
-            { col_filepath, "" },
+            { col_path, "" },
         }
     end
 
@@ -75,7 +75,8 @@ local function make_entry_maker( opts )
         
         local skeleton = entry
 
-        local ordinal = skeleton.filetype .. "/" .. skeleton.tag .. "/" .. skeleton.overrides -- FIXME: sorting only works for overrides 0..9
+        --local ordinal = skeleton.filetype .. "/" .. skeleton.tag .. "/" .. skeleton.overrides -- FIXME: sorting only works for overrides 0..9
+        local ordinal = skeleton.filetype 
         return {
 
             value = skeleton,

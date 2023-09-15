@@ -43,7 +43,6 @@ local function wrap_filepath(dir, ft, filepath)
     local filetype = string.match( filepath, regexA )
     if filetype then
         skeleton.filetype = filetype
-        skeleton.home = home
 
         return skeleton
     end
@@ -54,7 +53,6 @@ local function wrap_filepath(dir, ft, filepath)
   
     local filetype, tag = string.match( filepath, regexBC )
     if filetype and tag then
-        skeleton.home = home
         skeleton.filetype = filetype
         skeleton.tag  = tag
 

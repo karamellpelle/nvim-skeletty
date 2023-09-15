@@ -1,6 +1,7 @@
 # TODO
 * implement `apply_at_top` 
 * write `doc/skeletty.txt` 
+* `:SkelettyApply` with nargs=*
 * testing
 
 ## Telescope
@@ -8,5 +9,4 @@
 * create mappings: show overrides (default off), path (default off), localdir_only (default off)
 * filename argument: `:Telescope skeletty apply <filename>` 
 * sorting
-* only show containing directory
 
