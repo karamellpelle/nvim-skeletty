@@ -27,10 +27,14 @@ local function apply_(opts, scope, filetype)
 
 end
 
-local function apply(opts, filetype)
+local function apply(opts)
 
-    -- TODO: retrieve arg from Telescope command line
-    filetype = "*"
+    local filetype = "*"
+
+    -- filetype can be specified in Telescope command: Telescope skeletty apply <""|ft|filetype>=<filetype>
+    filetype = opts[""] or filetype
+    filetype = opts["ft"] or filetype
+    filetype = opts["filetype"] or filetype
 
     -- look in every directory
     local scope = { localdir = true, userdir = true, runtimepath = true }

@@ -81,6 +81,6 @@ Skeletty integrates well with [Telescope](https://github.com/nvim-telescope/tele
 telescope.load_extension( "skeletty " )
 ```
 
-This extension has an interface similar to the commands.
+This extension has an interface similar to the commands. For example, to apply a LaTeX specific skeleton: `:Telescope skeletty apply =latex`
 
 
