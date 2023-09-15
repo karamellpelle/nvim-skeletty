@@ -52,7 +52,7 @@ local function skeleton_apply(skeleton )
     local ret =snippy.expand_snippet( snip, "" )
 
     -- back to normal mode
-    vim.cmd( "stopinsert" )
+    vim.cmd( "stopinsert" ) -- FIXME: this does not work for some reason :(
 
     return ret
 

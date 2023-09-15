@@ -1,6 +1,6 @@
 # Skeletty 💀
 
-Skeletty is a NeoVim plugin for file skeletons (templates). It depends on [dcompos/nvim-snippy](https://github.com/dcampos/nvim-snippy) to expand the template files that define the skeletons.
+Skeletty is a NeoVim plugin for file skeletons (templates). It depends on [dcompos/nvim-snippy](https://github.com/dcampos/nvim-snippy) to expand the template files that defines the skeletons.
 
 ## Install
 For example through [vim-plug](https://github.com/junegunn/vim-plug):
@@ -11,7 +11,7 @@ Plug 'karamellpelle/nvim-skeletty'
 " endif
 ```
 
-You can configure Skeletty in your _init.lua_ or [_init.vim_](https://neovim.io/doc/user/lua.html#%3Alua-heredoc):
+Configure Skeletty in your _init.lua_ or [_init.vim_](https://neovim.io/doc/user/lua.html#%3Alua-heredoc):
 ```lua
 require( "skeletty" ).setup( {
       -- key0 = value0,
@@ -21,7 +21,7 @@ require( "skeletty" ).setup( {
 ``` 
 
 ## Settings
-These are available settings for `require( "skeletty" ).setup()` together with the default values. The `setup()` function can be called multiple times.
+These are the available settings for `require( "skeletty" ).setup()` together with the default values. The `setup()` function can be called multiple times.
 ```lua
 dirs               = nil,
 -- ^ list or comma separated string of directories to look after skeleton files
@@ -39,15 +39,15 @@ override           = false,
 -- ^ only show skeletons with highest priority when filetype and tag are equal
 apply_at_top       = false,
 -- ^ apply skeleton at top line
-apply_syntax       = false,
+apply_syntax       = true,
 -- ^ apply syntax highlight from skeleton if buffer have no filetype
 native_selector_force = false,
 -- ^ use the native selector even if Telescope is present.
 --   you probably don't want this.
 telescope          = {
-    skeletty_display_path               = false,  
+    skeletty_display_path               = true,  
     -- ^ display path of skeleton
-    skeletty_display_overrides          = false,
+    skeletty_display_overrides          = true,
     -- ^ display overridden skeletons
     skeletty_display_localdir_exclusive = false,
     -- ^ only display skeletons in localdir
@@ -68,11 +68,11 @@ auto = true, -- or use ':SkelettyAutoEnable'
 ## Skeleton format
 Skeleton files are `.snippet` files in SnipMate format as described in `:h snippy-snipmate-syntax`. Their prioritized locations are: (_a_) `localdir` relative to current working directory or project directory (`localdir_project = true`), (_b_) directories specified in `dirs`, (_c_) `skeletons/` subfolders of the directories in NeoVim's `runtimepath`. (_c_) is searched only if `dirs` is empty. Only local skeletons (_a_) can be set with `localdir_exclusive = true`
 
-Skeletons are named by filetype and tag, as files `<filetype>.snippet` (no tag), `<filetype>-<tag>.snippet` or `<filetype>/<tag>.snippet`.
+Skeletons are named by filetype and tag: as files `<filetype>.snippet` (no tag), `<filetype>-<tag>.snippet` or `<filetype>/<tag>.snippet`.
 
 
 ## Commands
-* `:Skeletty`: Apply skeleton to current, empty buffer, or a new buffer in a new tab.
+* `:Skeletty`: Apply skeleton to current, empty buffer, or create a new buffer in a new tab.
 * `:SkelettyApply <filetype>`: Apply skeleton of chosen filetype (or any skeleton using filetype `*`) to current buffer regardless of content in current buffer. Applies at current position, or top of file if `apply_at_top = true`.
 * `:SkelettyAutoEnable` / `:SkelettyAutoDisable`: Enable/disable automatic skeleton application on new files
 

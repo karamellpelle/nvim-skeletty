@@ -27,7 +27,7 @@ local default_config = {
     localdir_exclusive = false,
     auto               = false,
     apply_at_top       = false,
-    apply_syntax       = false,
+    apply_syntax       = true,
 
     native_selector_force = false,
 
@@ -35,8 +35,8 @@ local default_config = {
     --        settings for native selector also?
     telescope          = {
         -- display settings. TDOD: make toogleable by mappings
-        skeletty_display_path               = false,  
-        skeletty_display_overrides          = false,
+        skeletty_display_path               = true,  
+        skeletty_display_overrides          = true,
         skeletty_display_localdir_exclusive = false,
         skeletty_hl_group                   = "SkelettyPlaceholder"
     }
