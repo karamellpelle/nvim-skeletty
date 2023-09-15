@@ -14,6 +14,7 @@ local M = {}
 --      localdir_exclusive     :: Bool                           -- ^ only use localdir if there are skeletons there (otherwise look at userdir or runtimepath)
 --      auto                   :: Bool                           -- ^ toggle Skeletty AutoCmd: apply skeleton (from filetype) when new buffer
 --      apply_at_top           :: Bool                           -- ^ apply skeleton at top line, otherwise cursor line
+--      apply_syntax           :: Bool                           -- ^ apply syntax if buffer have no filetype
 --      natitve_selector_force :: Bool                           -- ^ use native selector even if Telescope is available (you probably don't want this)
 --      telescope              :: Telescope                      -- ^ settings for Telescope 
 --
@@ -26,6 +27,7 @@ local default_config = {
     localdir_exclusive = false,
     auto               = false,
     apply_at_top       = false,
+    apply_syntax       = false,
 
     native_selector_force = false,
 
@@ -36,7 +38,7 @@ local default_config = {
         skeletty_display_path               = false,  
         skeletty_display_overrides          = false,
         skeletty_display_localdir_exclusive = false,
-        skeletty_higroup                    = "SkelettyPlaceholder"
+        skeletty_hl_group                   = "SkelettyPlaceholder"
     }
 }
 

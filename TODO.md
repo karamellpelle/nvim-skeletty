@@ -1,8 +1,10 @@
 # TODO
-* implement `apply_at_top` 
 * write `doc/skeletty.txt` 
 * `:SkelettyApply` with nargs=*
-* testing
+* fix regex/find
+* test localdir
+* set normal mode after `apply()`
+
 
 ## Telescope
 * use `skeletty_display_` settings 

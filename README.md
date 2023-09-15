@@ -39,6 +39,8 @@ override           = false,
 -- ^ only show skeletons with highest priority when filetype and tag are equal
 apply_at_top       = false,
 -- ^ apply skeleton at top line
+apply_syntax       = false,
+-- ^ apply syntax highlight from skeleton if buffer have no filetype
 native_selector_force = false,
 -- ^ use the native selector even if Telescope is present.
 --   you probably don't want this.
@@ -49,7 +51,7 @@ telescope          = {
     -- ^ display overridden skeletons
     skeletty_display_localdir_exclusive = false,
     -- ^ only display skeletons in localdir
-    skeletty_higroup                    = "SkelettyPlaceholder"
+    skeletty_hl_group                   = "SkelettyPlaceholder"
     -- ^ highlight group for placeholder in the preview of skeleton
 }
 -- ^ Telescope specific settings
