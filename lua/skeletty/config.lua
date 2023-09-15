@@ -25,7 +25,7 @@ local default_config = {
     localdir_project   = false,
     localdir_exclusive = false,
     auto               = false,
-    apply_at_top       = true,
+    apply_at_top       = false,
 
     native_selector_force = false,
 

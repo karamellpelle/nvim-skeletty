@@ -37,8 +37,8 @@ auto               = false,
 -- ^ trig skeleton for every new file with a filetype (i.e. file extension)
 override           = false,
 -- ^ only show skeletons with highest priority when filetype and tag are equal
-apply_at_top       = true,
--- ^ apply skeleton relative to top row
+apply_at_top       = false,
+-- ^ apply skeleton at top line
 native_selector_force = false,
 -- ^ use the native selector even if Telescope is present.
 --   you probably don't want this.
@@ -71,14 +71,14 @@ Skeletons are named by filetype and tag, as files `<filetype>.snippet` (no tag),
 
 ## Commands
 * `:Skeletty`: Apply skeleton to current, empty buffer, or a new buffer in a new tab.
-* `:SkelettyApply <filetype>`: Apply skeleton of chosen filetype (or any skeleton using filetype `*`) to current buffer regardless of content in current buffer. Applies at top of file, or current position if `apply_at_top = false`.
+* `:SkelettyApply <filetype>`: Apply skeleton of chosen filetype (or any skeleton using filetype `*`) to current buffer regardless of content in current buffer. Applies at current position, or top of file if `apply_at_top = true`.
 * `:SkelettyAutoEnable` / `:SkelettyAutoDisable`: Enable/disable automatic skeleton application on new files
 
 
 ## Telescope
 Skeletty integrates well with [Telescope](https://github.com/nvim-telescope/telescope.nvim). Skeletty will automatically use Telescope as a skeleton selector if Telescope is present. Skeletty is also available as a Telescope extension: 
 ```lua
-telescope.load_extension( "skeletty " )
+telescope.load_extension( "skeletty" )
 ```
 
 This extension has an interface similar to the commands. For example, to apply a LaTeX specific skeleton: `:Telescope skeletty apply =latex`
