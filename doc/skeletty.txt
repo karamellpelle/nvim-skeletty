@@ -1,0 +1,189 @@
+*skeletty.txt* File skeletons powered by dcompos/nvim-snippy
+
+Skeletty                                                              *skeletty*
+
+==============================================================================
+CONTENTS                                                     *skeletty-contents*
+
+    INTRODUCTION.........................|skeletty-introduction|
+    USAGE................................|skeletty-usage|
+    SETUP OPTIONS........................|skeletty-setup-options|
+    SKELETON FORMAT......................|skeletty-skeleton-format|
+    COMMANDS.............................|skeletty-commands|
+    TELESCOPE............................|skeletty-telescope|
+    LICENSE..............................|skeletty-license|
+
+
+==============================================================================
+INTRODUCTION                                             *skeletty-introduction*
+
+Skeletty is a NeoVim plugin for file skeletons (templates). It depends on
+`dcompos/nvim-snippy` to expand the template files that defines the skeletons.
+
+
+==============================================================================
+USAGE                                                           *skeletty-usage*
+
+Configure Skeletty in your `init.lua` or `init.vim`: >
+
+    require( "skeletty" ).setup( {
+          -- key0 = value0,
+          -- key1 = value1,
+          -- ...
+    } )
+
+
+==============================================================================
+SETUP OPTIONS                                           *skeletty-setup-options*
+
+The `setup()` function can be called multiple times. 
+
+These are the available settings for `require( "skeletty" ).setup()` :
+
+dirs ~
+    List or comma separated string of directories to look after skeleton
+    files. Skeleton files must be placed in the top-level directory, with no 
+    nested `skeletons/` subfolder.
+        Type: `String` or `List`
+        Default: vim.api.nvim_list_runtime_paths()
+
+localdir ~
+    Relative path to directory containing local skeletons.
+        Type: `String`
+        Default: ".skeletons"
+
+localdir_project ~
+    Is the local directory relative to current working directory (`false`) or
+    current Git project (`true`)
+        Type: `Boolean`
+        Default: false
+
+localdir_exclusive ~
+    Only look for skeletons in the local directory (however, the
+    `:SkelettyApply` command will look everywhere)
+        Type: `Boolean`
+        Default: false
+
+auto ~
+    Trig skeleton for every new file with a filetype (i.e. any new file with 
+    an extension)
+        Type: `Boolean`
+        Default: false
+
+override ~
+    Only show skeletons with highest priority when filetype and tag are equal
+        Type: `Boolean`
+        Default: false
+
+apply_at_top ~
+    Apply skeleton at top line
+        Type: `Boolean`
+        Default: false
+
+apply_syntax ~
+    Apply syntax highlight from skeleton if buffer have no filetype
+        Type: `Boolean`
+        Default: true
+
+native_selector_force ~
+    Use the native selector even if Telescope is present. You probably don't 
+    want this.
+        Type: `Boolean`
+        Default: false
+
+telescope ~
+    A table with Telescope specific settings as keys. 
+        Type: `Table`
+        Default: {}
+
+    `    skeletty_display_path`: Display path of skeletons.
+            Type: `Boolean`
+            Default: true
+
+    `    skeletty_display_overrides`: Display overridden skeletons .
+            Type: `Boolean`
+            Default: true
+
+    `    skeletty_display_localdir_exclusive`: Only display local skeletons .
+            Type: `Boolean`
+            Default: false
+
+    `    skeletty_hl_group`: Highlight group for placeholder in Telescope preview .
+            Type: `String`
+            Default: "SkelettyPlaceholder"
+
+
+Here is a suggestion of sane settings: >
+
+    localdir = ".skeletons",
+    localdir_project = true,
+    localdir_exclusive = true,
+    auto = true, -- or use ':SkelettyAutoEnable'
+
+<
+==============================================================================
+SKELETON FORMAT                                       *skeletty-skeleton-format*
+
+Skeleton files are `.snippet` files in SnipMate format as described in 
+|snippy-snipmate-syntax|. Their prioritized locations are:
+
+    (a) `localdir` relative to current working directory or project directory 
+        (`localdir_project = true`), 
+    (b) directories specified in `dirs`, 
+    (c) `skeletons/` subfolders of the directories in NeoVim's `runtimepath`. 
+
+(c) is searched only if `dirs` is empty. Only local skeletons (a) can be set 
+with `localdir_exclusive = true` .
+
+Skeletons are named by filetype and tag: as files {filetype}.snippet (no tag) 
+or {filetype}-{tag}.snippet, or files in subdirectory {filetype}/{tag}.snippet
+
+
+==============================================================================
+FUNCTIONS                                                   *skeletty-functions*
+
+skeletty.setup( {options} )                                   *skeletty.setup()*
+    Set initial configuration for the plugin. See also |skeletty-setup-options|.
+
+
+==============================================================================
+COMMANDS                                                     *skeletty-commands*
+
+:Skeletty                                                             |Skeletty|
+    Apply skeleton to current, empty buffer, or a create a new buffer in a new 
+    tab.
+
+:SkelettyApply {filetype}                                       |SkelettyApply|
+    Apply skeleton of chosen filetype (or any skeleton using `*` as {filetype}) 
+    to current buffer regardless of content in current buffer. Applies at 
+    current position, or top of file if `apply_at_top = true` .
+
+:SkelettyAutoEnable                                        |SkelettyAutoEnable|
+    Enable automatic skeleton application on new files.
+
+:SkelettyAutoDisable                                      |SkelettyAutoDisable|
+    Disable automatic skeleton application on new files.
+
+
+==============================================================================
+TELESCOPE                                                   *skeletty-telescope*
+
+Skeletty integrates well with `nvim-telescope/telescope` . Skeletty will 
+automatically use Telescope as a skeleton selector if Telescope is present. 
+
+Skeletty is also available as a Telescope extension: >
+
+    telescope.load_extension( "skeletty" )
+<
+This extension has an interface similar to the commands. For example, to 
+apply a LaTeX specific skeleton: `:Telescope skeletty apply =latex`
+
+
+==============================================================================
+LICENCE                                                       *skeletty-license*
+
+Skeletty is licensed under the MIT license.
+
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:
