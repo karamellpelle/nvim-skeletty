@@ -114,9 +114,9 @@ telescope ~
             Type: `Boolean`
             Default: true
 
-    `    skeletty_display_localdir_exclusive`: Only display local skeletons .
+    `    skeletty_display_directory`: Display containing directory .
             Type: `Boolean`
-            Default: false
+            Default: true
 
     `    skeletty_hl_group`: Highlight group for placeholder in Telescope preview .
             Type: `String`

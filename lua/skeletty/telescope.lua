@@ -58,7 +58,7 @@ local function make_entry_maker( opts )
                               --(skeleton.overrides == 0 and "" or skeleton.overrides)  -- override counter
         local col_scope     = opts.skeletty_display_scope     == false and "" or 
                               (skeleton.scope == "localdir" and "localdir" or "")
-        local col_path  = opts.skeletty_display_filename  == false and "" or 
+        local col_path  = opts.skeletty_display_directory == false and "" or 
                               utils.transform_path( opts, skeleton.home )
 
         return displayer {

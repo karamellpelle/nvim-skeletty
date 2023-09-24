@@ -1,4 +1,4 @@
-# Skeletty 💀
+[#](#) Skeletty 💀
 
 Skeletty is a NeoVim plugin for file skeletons (templates). It depends on [dcompos/nvim-snippy](https://github.com/dcampos/nvim-snippy) to expand the template files that defines the skeletons.
 
@@ -49,8 +49,8 @@ telescope          = {
     -- ^ display path of skeleton
     skeletty_display_overrides          = true,
     -- ^ display overridden skeletons
-    skeletty_display_localdir_exclusive = false,
-    -- ^ only display skeletons in localdir
+    skeletty_display_directory          = true,
+    -- ^ display containing directory
     skeletty_hl_group                   = "SkelettyPlaceholder"
     -- ^ highlight group for placeholder in the preview of skeleton
 }
