@@ -2,7 +2,8 @@ local find = require("skeletty.find")
 local skeletty_telescope = require("skeletty.telescope")
 
 
--- | apply skeleton to current buffer
+-- | apply skeleton to current buffer.
+--   use filetype of current buffer (if any) if no filetype is given.
 local function apply_(opts, scope, filetype)
 
     opts = opts or {  }
@@ -27,6 +28,10 @@ local function apply_(opts, scope, filetype)
 
 end
 
+-- | apply skeleton to current buffer
+--   examples: 
+--      * `:Telescope skeletty apply`
+--      * `:Telescope skeletty apply =latex`
 local function apply(opts)
 
     local filetype = "*"
@@ -63,12 +68,12 @@ end
 
 return require("telescope").register_extension {
 
+    -- we can modify options given by Telescope to the extension here
     -- see     telescope.nvim/lua/telescope/_extensions/init.lua
     setup = function(ext_config, config)
         -- 'ext_config' : Extension opts
         -- 'config'     : Telescope opts
 
-        -- access extension config and user config
         -- (read/write)
     end,
 

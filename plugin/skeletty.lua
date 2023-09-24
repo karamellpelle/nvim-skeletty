@@ -63,8 +63,7 @@ command('SkelettyApply',
 
       end, { 
           desc = "Apply given skeleton to current buffer",
-          nargs = 1
-          -- ^ TODO: nargs = "*" 
+          nargs = "*"
       }
 )
 

@@ -8,10 +8,11 @@ local actions = require "telescope.actions"
 local action_state = require "telescope.actions.state"
 local entry_display = require "telescope.pickers.entry_display"
 local utils = require "telescope.utils"
+local action_utils = require "telescope.actions.utils"
 
 local myutils = require("skeletty.utils")
-config = require("skeletty.config")
-apply = require("skeletty.apply")
+local config = require("skeletty.config")
+local apply = require("skeletty.apply")
 
 -- | create default highlight group
 vim.cmd( [[hi SkelettyPlaceholder cterm=bold ctermfg=231 ctermbg=33]] )
@@ -27,8 +28,7 @@ vim.cmd( [[hi SkelettyPlaceholder cterm=bold ctermfg=231 ctermbg=33]] )
 -- | Config -> (Entry -> String)
 local function make_entry_maker( opts )
     
-    -- TODO: use opts for config
-
+    -- TODO: use opts like 'skeletty_display_*`
 
     -- | displayer :: String -> [UInt] -> ([Value, Highlight] -> String
     local displayer = entry_display.create( {
@@ -37,7 +37,7 @@ local function make_entry_maker( opts )
         items = {
             { width = 14 },
             { width = 14 },
-            { width = 1 },
+            { width = 2 },
             { width = 10 },
             { remaining = true },
         },
@@ -54,7 +54,8 @@ local function make_entry_maker( opts )
         local col_filetype  = skeleton.filetype
         local col_tag       = skeleton.tag
         local col_override  = opts.skeletty_display_override == false and "" or 
-                              (skeleton.overrides == 0 and "" or "*")
+                              (skeleton.overrides == 0 and "" or "*")                   -- override marker *
+                              --(skeleton.overrides == 0 and "" or skeleton.overrides)  -- override counter
         local col_scope     = opts.skeletty_display_scope     == false and "" or 
                               (skeleton.scope == "localdir" and "localdir" or "")
         local col_path  = opts.skeletty_display_filename  == false and "" or 
@@ -75,8 +76,9 @@ local function make_entry_maker( opts )
         
         local skeleton = entry
 
-        --local ordinal = skeleton.filetype .. "/" .. skeleton.tag .. "/" .. skeleton.overrides -- FIXME: sorting only works for overrides 0..9
-        local ordinal = skeleton.filetype 
+        local ordinal = skeleton.filetype -- .. skeleton.tag .. skeletons.overrides
+        -- ^ FIXME: 'ordinal' doesn't seem to sort (for me, at least)
+
         return {
 
             value = skeleton,
@@ -107,6 +109,22 @@ local function make_mapper(opts)
             apply.skeleton( skeleton )
         end)
 
+        --local map_override = opts.skeletty_map_toggle_overrides or "<C-o>"
+        --local map_localdir = opts.skeletty_map_toggle_localdir or "<C-l>"
+        --
+        --local prompt_bufnr = vim.api.nvim_get_current_buf()
+        --local current_picker = action_state.get_current_picker( prompt_bufnr )
+
+        -- TODO: toggle show overrides
+        --map( {"i", "n"}, map_override, function(_prompt_bufnr)
+        --    print "toggle overrides"
+        --end)
+
+        -- TODO: toggle show localdir exclusive
+        --map( {"i", "n"}, map_localdir, function(_prompt_bufnr)
+        --  print "toggle localdir"
+        --end)
+
         return true
     end
 end
@@ -134,11 +152,9 @@ local function make_skeletty_picker(opts, skeletonset)
 
     -- skull selector (can be overridden by user)
     opts.selection_caret = opts.selection_caret or '💀' 
-
-    opts.skeletty_display_filename = opts.skeletty_display_filename or true
-    opts.skeletty_display_override = opts.skeletty_display_override or false
-    opts.skeletty_display_scope = opts.skeletty_display_scope or true
-    --opts.skeletty_ = opts.skeletty_ or false
+    
+    -- vertical layout by default
+    opts.layout_strategy = opts.layout_strategy or "vertical"
 
     pickers.new( opts, {
 
@@ -147,7 +163,7 @@ local function make_skeletty_picker(opts, skeletonset)
         sorter = conf.generic_sorter( opts ),
         finder = finders.new_table {
 
-            results = skeletonset.skeletons,
+            results = skeletonset.skeletons, -- ^ TODO: use `table.sort` here since sorting by 'ordinal' doesn't seem to work?
             entry_maker = make_entry_maker( opts ),
         },
 
@@ -172,7 +188,7 @@ local function test_pick()
     for i, v in ipairs( { 
         { "haskell", "stack" },
         { "haskell", "hackage" },
-        { "haskell", "rave" },
+        { "haskell", "main" },
         { "cpp",     "bjarne" },
         { "cpp",     "stroustrup" },
         { "c-sharp", "bill" },
@@ -214,7 +230,7 @@ test_pick()
 M.pick_skeleton = function( skeletonset )
 
      
-    -- TODO: extend from 'conf' above?
+    -- TODO: extend from Telescope's 'conf' above
 
     local opts = config.get().telescope or {  }
 
