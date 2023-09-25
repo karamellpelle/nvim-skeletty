@@ -76,7 +76,8 @@ local function make_entry_maker( opts )
         
         local skeleton = entry
 
-        local ordinal = skeleton.filetype -- .. skeleton.tag .. skeletons.overrides
+        --local ordinal = skeleton.filetype -- .. skeleton.tag .. skeleton.overrides
+        local ordinal = skeleton.filetype 
         -- ^ FIXME: 'ordinal' doesn't seem to sort (for me, at least)
 
         return {

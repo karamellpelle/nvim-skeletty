@@ -41,7 +41,7 @@ local function wrap_filepath(dir, ft, filepath)
 
     -- non-tagged skeleton file?
     local regexA = dir .. "/" ..  "(" .. ft .. ")" .. "%.snippet$"
-    --             home                      filetype            ext
+    --             home               filetype            ext
 
     local filetype = string.match( filepath, regexA )
     if filetype then
@@ -52,7 +52,7 @@ local function wrap_filepath(dir, ft, filepath)
 
     -- tagged?
     regexBC = dir .. "/" .. "(" .. ft .. ")" .. "[%-/]" .. "([A-Za-z0-9_]+)" .. "%.snippet$"
-    --        home                       filetype         / or -          tag                 ext 
+    --        home             filetype         / or -          tag                 ext 
   
     local filetype, tag = string.match( filepath, regexBC )
     if filetype and tag then
@@ -64,11 +64,11 @@ local function wrap_filepath(dir, ft, filepath)
     vim.notify( "Could not match filepath " .. filepath, vim.log.levels.ERROR )
     skeleton.filetype = "ERROR"
     skeleton.tag = "REGEX"
-utils.debug("wrap_filepath: dir ", dir)
-utils.debug("wrap_filepath: filepath ", filepath)
-utils.debug("wrap_filepath: regexA ", regexA)
-utils.debug("wrap_filepath: regexBC ", regexBC)
-utils.debug("wrap_filepath: ret ", skeleton)
+--utils.debug("wrap_filepath: dir ", dir)
+--utils.debug("wrap_filepath: filepath ", filepath)
+--utils.debug("wrap_filepath: regexA ", regexA)
+--utils.debug("wrap_filepath: regexBC ", regexBC)
+--utils.debug("wrap_filepath: ret ", skeleton)
     return skeleton
 
 end
@@ -84,13 +84,16 @@ local function skeletonset_append_dirs(skeletonset, ft, dirs, sub, meta)
 
     -- flatten table into comma separated list and convert to fullpath from globs
     for _, dir in ipairs( dirs ) do
+        
+        globs = {}
+        -- [filetype]
+        table.insert( globs, ft .. ".snippet" )
+        -- [filetype]-[tag] 
+        if ft ~= "*" then table.insert( globs, ft .. "-*.snippet" ) end -- prevent doublues if ft == "*"
+        -- [filetype]/[tag]
+        table.insert( globs, ft .. '/*.snippet' )                       
 
-        for _, expr in ipairs( {
-
-            ft .. '.snippet',     -- [filetype]
-            ft .. '-*.snippet',   -- [filetype]-[tag]
-            ft .. '/*.snippet',   -- [filetype]/[tag]
-        }) do
+        for _, expr in ipairs( globs ) do
 
             -- add all files matching globs above, for each directory in 'dirs' 
             local skeletons = vim.fn.globpath( dir .. sub, expr, false, true)

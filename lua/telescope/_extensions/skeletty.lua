@@ -21,7 +21,6 @@ local function apply_(opts, scope, filetype)
 
     if #skeletonset.skeletons ~= 0 then
 
-        opts.prompt_title = opts.prompt_title or "Append skeleton"
 
         skeletty_telescope.make_skeletty_picker( opts, skeletonset )
     end
@@ -41,9 +40,12 @@ local function apply(opts)
     filetype = opts["ft"] or filetype
     filetype = opts["filetype"] or filetype
 
+    opts.prompt_title = "Apply skeleton"
+
     -- look in every directory
     local scope = { localdir = true, userdir = true, runtimepath = true }
     apply_( opts, scope, filetype )
+    
 end
 
 
