@@ -154,6 +154,7 @@ local function skeletty_setup( params )
     config.set(  params  )
 
     -- enable or disable automatic application of skeletons for _new files_
+    -- FIXME: only if CWD is in localdir/project if localdir_exclusive
     if config.settings.auto then
 
         if not id_bufnewfile then

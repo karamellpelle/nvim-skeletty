@@ -5,3 +5,4 @@ session.vim
 tmp
 .skeletons
 debug-log.txt
+doc/tags

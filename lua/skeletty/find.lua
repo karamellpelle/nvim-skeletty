@@ -121,19 +121,31 @@ local function expand_localdir(localdir)
 
     if not localdir or localdir == "" then return nil end
 
+    local path = nil
+
     -- shall we use project folder as parent folder for 'localdir'?
     if config.get().localdir_project == true then
 
         local project_dir = vim.fn.finddir( '.git/..', vim.fn.fnamemodify( vim.fn.getcwd(), ':p:h' ) .. ';' )
-        return project_dir .. '/' .. localdir
+        path = project_dir .. '/' .. localdir
     else
 
-        return vim.fn.fnamemodify( localdir, ':p' )
+        path = vim.fn.fnamemodify( localdir, ':p' )
     end
+
+    -- only return computed path if it is a valid directory
+    if vim.fn.isdirectory( path ) then
+      return path
+    end
+
+    return nil
+    
 end
 
 
-
+local function get_localdir()
+    return expand_localdir( config.get().localdir )
+end
 
 --------------------------------------------------------------------------------
 -- | count overrides (and remove them if config.get().override)
@@ -240,17 +252,11 @@ local function find_skeletons(scope, filetype)
 
         -- add local directory and expand to full path,
         -- relative to current folder, or project folder if 'localdir_project'
-        local localdir = expand_localdir( config.get().localdir )
+        local localdir = get_localdir()
         if localdir then
 
-          if vim.fn.isdirectory( localdir ) then
-
-              has_localdir = true
-              skeletonset_append_dirs( skeletonset, filetype, { localdir }, "", { scope = "localdir" } )
-          else
-
-              vim.notify( 'Skeletty: localdir ' .. localdir .. 'is not a valid directory', vim.log.levels.WARN )
-          end
+            has_localdir = true
+            skeletonset_append_dirs( skeletonset, filetype, { localdir }, "", { scope = "localdir" } )
         end
     end
 
