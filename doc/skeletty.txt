@@ -58,7 +58,7 @@ dirs ~
         Default: vim.api.nvim_list_runtime_paths()
 
 localdir ~
-    Relative path to directory containing local skeletons.
+    Relative path to directory containing local skeletons. 
         Type: `String`
         Default: ".skeletons"
 
@@ -75,8 +75,8 @@ localdir_exclusive ~
         Default: false
 
 auto ~
-    Trig skeleton for every new file with a filetype (i.e. any new file with 
-    an extension)
+    Trig skeleton for every new file with a filetype (i.e. any new, empty file 
+    with an extension)
         Type: `Boolean`
         Default: false
 

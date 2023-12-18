@@ -11,6 +11,8 @@ Plug 'karamellpelle/nvim-skeletty'
 " endif
 ```
 
+
+
 Configure Skeletty in your _init.lua_ or [_init.vim_](https://neovim.io/doc/user/lua.html#%3Alua-heredoc):
 ```lua
 require( "skeletty" ).setup( {
@@ -23,28 +25,28 @@ require( "skeletty" ).setup( {
 ## Settings
 These are the available settings for `require( "skeletty" ).setup()` together with the default values. The `setup()` function can be called multiple times.
 ```lua
-dirs               = nil,
+dirs                  = nil,
 -- ^ list or comma separated string of directories to look after skeleton files
-localdir           = ".skeletons",
+localdir              = ".skeletons",
 -- ^ name of subfolder with local skeletons
-localdir_project   = false,
+localdir_project      = false,
 -- ^ is the local folder relative to current working directory (false)
 --   or current Git project (true)?
-localdir_exclusive = false,
+localdir_exclusive    = false,
 -- ^ only look for skeletons in the local directory 
 --   (however, the 'apply' command will look everywhere)
-auto               = false,
+auto                  = false,
 -- ^ trig skeleton for every new file with a filetype (i.e. file extension)
-override           = false,
+override              = false,
 -- ^ only show skeletons with highest priority when filetype and tag are equal
-apply_at_top       = false,
+apply_at_top          = false,
 -- ^ apply skeleton at top line
-apply_syntax       = true,
+apply_syntax          = true,
 -- ^ apply syntax highlight from skeleton if buffer have no filetype
 native_selector_force = false,
 -- ^ use the native selector even if Telescope is present.
 --   you probably don't want this.
-telescope          = {
+telescope             = {
     skeletty_display_path               = true,  
     -- ^ display path of skeleton
     skeletty_display_overrides          = true,
@@ -64,9 +66,10 @@ localdir_project = true,
 localdir_exclusive = true,
 auto = true, -- or use ':SkelettyAutoEnable'
 ```
+This forces Skeletty to only work when we are inside a Git project and the root folder has a _.skeletons_ subfolder. For any new file that has a corresponding skeleton in the subfolder, we will automatically get the choice to apply the skeleton(s). The `:SkelettyApply` command can always be used to apply any skeleton to any file.
 
 ## Skeleton format
-Skeleton files are `.snippet` files in SnipMate format as described in `:h snippy-snipmate-syntax`. Their prioritized locations are: (_a_) `localdir` relative to current working directory or project directory (`localdir_project = true`), (_b_) directories specified in `dirs`, (_c_) `skeletons/` subfolders of the directories in NeoVim's `runtimepath`. (_c_) is searched only if `dirs` is empty. Only local skeletons (_a_) can be set with `localdir_exclusive = true`
+Skeleton files are `.snippet` files in SnipMate format as described in `:h snippy-snipmate-syntax`. Their prioritized locations are: (_a_) `localdir` relative to current working directory or project directory (`localdir_project = true`), (_b_) directories specified in `dirs`, (_c_) `skeletons/` subfolders of the directories in NeoVim's `runtimepath`. (_c_) is searched only if `dirs` is empty. Only using local skeletons (_a_) can be set with `localdir_exclusive = true`
 
 Skeletons are named by filetype and tag: as files `<filetype>.snippet` (no tag), `<filetype>-<tag>.snippet` or `<filetype>/<tag>.snippet`.
 

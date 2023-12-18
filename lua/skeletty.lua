@@ -2,10 +2,10 @@
 --  this code is based on code from dcampos/nvim-snippy (templates)
 --
 
-utils = require("skeletty.utils")
-config = require("skeletty.config")
-find = require("skeletty.find")
-apply = require("skeletty.apply")
+local utils = require("skeletty.utils")
+local config = require("skeletty.config")
+local find = require("skeletty.find")
+local apply = require("skeletty.apply")
 
 -- export data
 local M = {}
@@ -67,7 +67,48 @@ local function select_skeleton( skeletonset )
 
 end
 
-local function apply_( scope, filetype ) 
+local function notify_empty_skeletons( source, filetype )
+
+    local has_filetype = filetype and filetype ~= ""
+    local message = nil
+
+    if source == "skeletty_new" then
+
+        message = ":Skeletty : "
+        if has_filetype then
+
+            message = message .. "No skeleton found for filetype " .. filetype
+        else
+
+            message = message .. "No skeletons found at all"
+        end
+
+        if config.get().localdir_exclusive then
+
+            message = message .. " ('localdir_exclusive' is enabled)"
+        end
+    end 
+    if source == "skeletty_apply" then
+        
+        message = ":SkelettyApply : "
+        if has_filetype then
+
+            message = message .. "No skeleton found for filetype " .. filetype
+        else
+
+            message = message .. "No skeletons found at all (!)" .. filetype
+        end
+    end
+
+    -- ignore source == "callback_BufNewFile" 
+
+    if message then
+
+        vim.notify( message, vim.log.levels.WARN )
+    end
+end
+
+local function apply_( scope, filetype, source ) 
 
     if not filetype or filetype == "" then
          
@@ -78,7 +119,7 @@ local function apply_( scope, filetype )
     -- between all skeletosn
     if filetype == "" then filetype = nil end
 
-    -- search every directory, ignore 'localdir_exclusive' etc)
+    -- search in configured directories 
     skeletonset = find.skeletons( scope, filetype )
 
     if #skeletonset.skeletons ~= 0 then
@@ -94,56 +135,43 @@ local function apply_( scope, filetype )
             -- vim native
             select_skeleton( skeletonset )
         end
+
+    else
+
+        -- notify 
+        notify_empty_skeletons( source, filetype )
     end
+
+
 end
 
--- | look in every directory for 'filetype' (can be all filetypes)
+-- | look in every directory for skeletons for 'filetype'
 local function skeletty_apply( filetype ) 
 
     local scope = { localdir = true, userdir = true, runtimepath = true }
-    apply_( scope, filetype )
+    apply_( scope, filetype, "skeletty_apply")
 end
 
 
--- | append to an empty buffer
-local function skeletty_new()
-    
+local function skeletty_apply_empty( source )
     -- is current buffer empty?
     local lines = vim.fn.getline(1, "$")
     local is_empty = #lines <= 1 and lines[ 1 ] == "" or false
 
     if not is_empty then 
-        vim.cmd.tabnew()
 
+        vim.cmd.tabnew()
     end
     
-    apply_( nil, nil )
-end
-
---------------------------------------------------------------------------------
---  autocmd callbacks
--- 
--- for args meaning, see :h nvim_crate_autocmd
---
---
-local id_bufnewfile = nil
-
-local function bufnewfile_callback(args)
-
-    local filetype = vim.bo[ args.buf ].filetype
-
-    -- we will not apply a skeleton if filetype is empty, to prevent 
-    -- automatic skeleton on every new buffer
-    if not filetype or filetype == "" then
-
-        return
-    end
-
-    skeletty_apply( filetype )
+    apply_( nil, nil, source )
 
 end
 
-
+-- | append to an empty buffer
+local function skeletty_new()
+    
+    skeletty_apply_empty( "skeletty_new" )
+end
 
 --------------------------------------------------------------------------------
 --  configure
@@ -151,28 +179,56 @@ end
 
 local function skeletty_setup( params )
 
+    -- update settings
     config.set(  params  )
 
-    -- enable or disable automatic application of skeletons for _new files_
-    -- FIXME: only if CWD is in localdir/project if localdir_exclusive
-    if config.settings.auto then
+    local create_auto = function()
 
-        if not id_bufnewfile then
+        local callback_BufNewFile = function(args)
+            -- for args meaning, see :h nvim_crate_autocmd
 
-            local group = vim.api.nvim_create_augroup("Skeletty", { clear = true })
-            id_bufnewfile = vim.api.nvim_create_autocmd( "BufNewFile", {
-                group = group,
-                pattern = '*.*',
-                callback = bufnewfile_callback, 
-                desc = "Apply skeleton on new buffer based on its filetype"
-            })
+            local filetype = vim.bo[ args.buf ].filetype
+
+            -- we will not apply a skeleton if filetype is empty, to prevent 
+            -- automatic skeleton on every new buffer
+            if not filetype or filetype == "" then
+
+                return
+            end
+
+            skeletty_apply_empty( "callback_BufNewFile" )
         end
+
+        local group = vim.api.nvim_create_augroup("Skeletty", { clear = true })
+        vim.api.nvim_create_autocmd( "BufNewFile", {
+            group = group,
+            pattern = '*.*',
+            callback = callback_BufNewFile, 
+            desc = "Apply skeleton on new buffer based on its filetype"
+        })
+    end
+
+
+    -- enable/disable automatic skeletons for _new_ files
+    if config.settings.auto == true then
+
+        if config.get().localdir_exclusive then
+
+            -- only add autocommand if we are inside a project with a localdir. 
+            if find.localdir() then
+
+                create_auto()
+            end
+        else
+
+            create_auto()
+        end
+
     else
 
-        -- delete autocommand. 
-        -- TODO: deleting autocommand group is better (when we have more autocommands)
-        if id_bufnewfile then vim.api.nvim_del_autocmd( id_bufnewfile ) end
-        id_bufnewfile = nil
+        -- delete all Skeletty autocommands
+        --vim.api.nvim_clear_autocmds( { group = "Skeletty" } ) -- does not work if Skeletty not existing
+        vim.api.nvim_create_augroup("Skeletty", { clear = true })
     end
 
 end

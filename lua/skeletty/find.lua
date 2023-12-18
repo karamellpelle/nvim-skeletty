@@ -317,7 +317,7 @@ end
 --  module skeletty where
 
 M.skeletons = find_skeletons
-
+M.localdir = get_localdir
 return M
 
 

@@ -42,7 +42,7 @@ command('SkelettyAutoDisable',
 )
 
 
--- | apply skeleton from given filetype (or all if *)
+-- | apply skeleton to empty file. open in new tab if current buffer is non-empty
 command('Skeletty', 
       function( arg ) 
           require('skeletty').new()
