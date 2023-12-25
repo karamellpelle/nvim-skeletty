@@ -88,8 +88,8 @@ telescope.load_extension( "skeletty" )
 
 This extension has an interface similar to the commands. For example, to apply a LaTeX specific skeleton: `:Telescope skeletty apply =latex`
 
-![screenshot-macos-0](https://github.com/karamellpelle/nvim-skeletty/assets/4390333/3d35fe67-c84f-4a1f-b5c2-e59928c3e3da)
+![screenshot-macos-1](https://github.com/karamellpelle/nvim-skeletty/assets/4390333/57df3930-3a88-4fe3-9a64-777450379d95)
 
 ## FIXME
-* There is some bug during template expansion from _nvim-snippy_. The interesting file for _nvim_skeletty_ is _./lua/skeletty/apply.lua_
-* The Telescope list is not sorted correctly despite `ordinal = skeleton.filetype`; see screenshot above. Maybe `ordinal` of Telescope does no sorting and we have to do this manually??
+* There is a bug during template expansion from _nvim-snippy_ which must be fixed. The interesting file for _nvim_skeletty_ is _./lua/skeletty/apply.lua_
+
