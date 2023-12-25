@@ -34,7 +34,7 @@ localdir_project      = false,
 --   or current Git project (true)?
 localdir_exclusive    = false,
 -- ^ only look for skeletons in the local directory 
---   (however, the 'apply' command will look everywhere)
+--   (however, the ':SkelettyApply' command will look everywhere)
 auto                  = false,
 -- ^ trig skeleton for every new file with a filetype (i.e. file extension)
 override              = false,

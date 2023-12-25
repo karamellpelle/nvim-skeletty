@@ -122,10 +122,15 @@ local function apply_( scope, filetype, source )
     -- search in configured directories 
     skeletonset = find.skeletons( scope, filetype )
 
+    -- group skeletons after filetypes (each group's internal order is correct)
+    local comp = function( s0, s1 )
+        return s0.filetype < s1.filetype
+    end
+    table.sort( skeletonset.skeletons, comp )
+
     if #skeletonset.skeletons ~= 0 then
 
         -- select from skeletons, use Telescope if available
-    
         if pcall( require, "telescope" ) and config.settings.selector_native_force ~= true then
 
             -- Telescope

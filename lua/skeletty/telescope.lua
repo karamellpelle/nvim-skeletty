@@ -76,9 +76,8 @@ local function make_entry_maker( opts )
         
         local skeleton = entry
 
-        --local ordinal = skeleton.filetype -- .. skeleton.tag .. skeleton.overrides
-        local ordinal = skeleton.filetype 
-        -- ^ FIXME: 'ordinal' doesn't seem to sort (for me, at least)
+        -- value that Picker uses for filtering (searching)
+        local ordinal = skeleton.filetype .. skeleton.tag 
 
         return {
 
@@ -239,7 +238,7 @@ M.pick_skeleton = function( skeletonset )
     -- default to normal mode since the number of skeletons shouldn't be overwelding
     opts.initial_mode = opts.initial_mode or "normal"
 
-    opts.prompt_title = "New file from"
+    opts.prompt_title = "Filter"
 
     make_skeletty_picker( opts, skeletonset )
 end
