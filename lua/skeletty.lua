@@ -96,7 +96,7 @@ local function notify_empty_skeletons( source, filetype )
             message = message .. "No skeleton found for filetype " .. filetype
         else
 
-            message = message .. "No skeletons found at all (!)" .. filetype
+            message = message .. "No skeletons found at all (!)" 
         end
     end
 
