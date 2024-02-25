@@ -92,6 +92,3 @@ This extension has an interface similar to the commands. For example, to apply a
 
 ![screenshot-macos-1](https://github.com/karamellpelle/nvim-skeletty/assets/4390333/57df3930-3a88-4fe3-9a64-777450379d95)
 
-## FIXME
-* There is a bug during template expansion from _nvim-snippy_ which must be fixed. The interesting file for _nvim_skeletty_ is _./lua/skeletty/apply.lua_
-
