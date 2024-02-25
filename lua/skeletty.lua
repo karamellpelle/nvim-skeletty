@@ -130,15 +130,22 @@ local function apply_( scope, filetype, source )
 
     if #skeletonset.skeletons ~= 0 then
 
-        -- select from skeletons, use Telescope if available
-        if pcall( require, "telescope" ) and config.settings.selector_native_force ~= true then
+        if config.settings.auto_single and #skeletonset.skeletons == 1 then
 
-            -- Telescope
-            require("skeletty.telescope").pick_skeleton( skeletonset )
+            -- apply without selection prompt since we have only 1 candidate
+            apply.skeleton( ix( skeletonset.skeletons, 0 ) )
+
         else
-            
-            -- vim native
-            select_skeleton( skeletonset )
+            -- select from skeletons, use Telescope if available
+            if pcall( require, "telescope" ) and config.settings.selector_native_force ~= true then
+
+                -- Telescope
+                require("skeletty.telescope").pick_skeleton( skeletonset )
+            else
+                
+                -- vim native
+                select_skeleton( skeletonset )
+            end
         end
 
     else

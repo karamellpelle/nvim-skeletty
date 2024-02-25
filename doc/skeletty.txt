@@ -80,6 +80,12 @@ auto ~
         Type: `Boolean`
         Default: false
 
+auto_single ~
+    Apply skeleton directly without selection prompt if there is just 1 skeleton
+    candidate.
+        Type: `Boolean`
+        Default: false
+
 override ~
     Only show skeletons with highest priority when filetype and tag are equal
         Type: `Boolean`
