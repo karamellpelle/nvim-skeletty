@@ -67,6 +67,7 @@ localdir = ".skeletons",
 localdir_project = true,
 localdir_exclusive = true,
 auto = true, -- or use ':SkelettyAutoEnable'
+auto_single = true,
 ```
 This forces Skeletty to only work when we are inside a Git project and the root folder has a _.skeletons_ subfolder. For any new file that has a corresponding skeleton in the subfolder, we will automatically get the choice to apply the skeleton(s). The `:SkelettyApply` command can always be used to apply any skeleton to any file.
 
