@@ -133,7 +133,7 @@ local function apply_( scope, filetype, source )
         if config.settings.auto_single and #skeletonset.skeletons == 1 then
 
             -- apply without selection prompt since we have only 1 candidate
-            apply.skeleton( ix( skeletonset.skeletons, 0 ) )
+            apply.skeleton( skeletonset.skeletons[ 0 + 1 ] ) 
 
         else
             -- select from skeletons, use Telescope if available
