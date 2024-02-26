@@ -37,7 +37,7 @@ localdir_exclusive    = false,
 --   (however, the ':SkelettyApply' command will look everywhere)
 auto                  = false,
 -- ^ trig skeleton for every new file with a filetype (i.e. file extension)
-auto_single           = true
+auto_single           = false,
 -- ^ if there is just 1 candidate, apply without selection prompt
 override              = false,
 -- ^ only show skeletons with highest priority when filetype and tag are equal
