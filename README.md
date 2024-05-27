@@ -91,5 +91,5 @@ telescope.load_extension( "skeletty" )
 
 This extension has an interface similar to the commands. For example, to apply a LaTeX specific skeleton: `:Telescope skeletty apply =latex`
 
-![screenshot-macos-1](https://github.com/karamellpelle/nvim-skeletty/assets/4390333/57df3930-3a88-4fe3-9a64-777450379d95)
+![screenshot-linux-0](https://github.com/karamellpelle/nvim-skeletty/assets/4390333/d721eae8-eb6e-46fc-9dc0-a4386cfd9f25)
 
