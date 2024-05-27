@@ -15,7 +15,7 @@ local config = require("skeletty.config")
 local apply = require("skeletty.apply")
 
 -- | create default highlight group
-vim.cmd( [[hi SkelettyPlaceholder cterm=bold ctermfg=231 ctermbg=33]] )
+vim.cmd( [[hi SkelettyPlaceholder cterm=bold ctermfg=231 ctermbg=20 gui=bold guifg=#ffffff guibg=#0000ee]] )
 
 
 --------------------------------------------------------------------------------
